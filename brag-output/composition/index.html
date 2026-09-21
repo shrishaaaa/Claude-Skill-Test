@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f9fafb;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+        background: #f9fafb;
+      }
+      .scene {
+        background: #f9fafb;
+      }
+      .panel {
+        position: absolute;
+        left: 160px;
+        top: 96px;
+        width: 1600px;
+        height: 888px;
+      }
+      .card {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        overflow: hidden;
+      }
+      .icon {
+        display: block;
+      }
+      .row-cell {
+        display: flex;
+        align-items: center;
+      }
+      .q-row {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1600px;
+        height: 72px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #f3f4f6;
+        background: #ffffff;
+      }
+      .search-box {
+        position: relative;
+        width: 460px;
+        height: 56px;
+      }
+      .search-cursor-bar {
+        display: inline-block;
+        width: 2px;
+        height: 22px;
+        background: #374151;
+        vertical-align: middle;
+        margin-left: 1px;
+      }
+      .headline-cursor {
+        display: inline-block;
+        width: 4px;
+        height: 44px;
+        background: #ffffff;
+        vertical-align: middle;
+        margin-left: 4px;
+      }
+      .mouse-cursor {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+      }
+    </style>
+</head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="brag"
+      data-start="0"
+      data-duration="21"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <!-- ============================================================ -->
+      <!-- SCENE 1 — Cold open: the wall of questionnaires — 0-3s -->
+      <!-- ============================================================ -->
+      <section
+        id="scene1"
+        class="clip scene"
+        data-start="0"
+        data-duration="3"
+        data-track-index="0"
+      >
+        <!-- hook banner — a solid bar with no overlap over the dashboard below -->
+        <div
+          style="position:absolute; left:0; top:0; width:1920px; height:188px; background:#0f172a; display:flex; align-items:center;"
+        >
+          <div style="padding-left:160px; padding-right:160px;">
+            <div
+              id="s1-headline"
+              style="font-size:48px; font-weight:600; color:#ffffff; letter-spacing:-0.01em; line-height:1.2;"
+            ></div>
+          </div>
+        </div>
+
+        <div class="panel" id="s1-panel" style="top:208px;"></div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCENE 2 — Search narrows it — 3-8s -->
+      <!-- ============================================================ -->
+      <section
+        id="scene2"
+        class="clip scene"
+        data-start="3"
+        data-duration="5"
+        data-track-index="0"
+      >
+        <div class="panel" id="s2-panel"></div>
+        <div id="s2-cursor-wrap" style="position:absolute; left:0; top:0; width:1920px; height:1080px; pointer-events:none;"></div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCENE 3 — Status + assignee language — 8-13s -->
+      <!-- ============================================================ -->
+      <section
+        id="scene3"
+        class="clip scene"
+        data-start="8"
+        data-duration="5"
+        data-track-index="0"
+        style="display:flex; align-items:center; justify-content:center;"
+      >
+        <div style="width:1600px;">
+          <div
+            style="font-size:28px; font-weight:600; color:#6b7280; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:40px; text-align:center;"
+          >
+            Every state, one glance
+          </div>
+          <div id="s3-badges" style="display:flex; gap:28px; justify-content:center; margin-bottom:64px;"></div>
+          <div id="s3-avatars" style="display:flex; gap:28px; justify-content:center; align-items:center;"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCENE 4 — Sort snaps it into order — 13-18s -->
+      <!-- ============================================================ -->
+      <section
+        id="scene4"
+        class="clip scene"
+        data-start="13"
+        data-duration="5"
+        data-track-index="0"
+      >
+        <div class="panel" id="s4-panel"></div>
+        <div id="s4-cursor-wrap" style="position:absolute; left:0; top:0; width:1920px; height:1080px; pointer-events:none;"></div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- SCENE 5 — Outro / punchline — 18-21s -->
+      <!-- ============================================================ -->
+      <section
+        id="scene5"
+        class="clip scene"
+        data-start="18"
+        data-duration="3"
+        data-track-index="0"
+      >
+        <div
+          style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center;"
+        >
+          <div id="s5-outro" style="text-align:center; opacity:0;">
+            <div style="font-size:64px; font-weight:700; color:#111827; letter-spacing:-0.02em;">
+              Questionnaire Dashboard
+            </div>
+            <div style="font-size:30px; color:#374151; margin-top:20px;">
+              Every questionnaire, one screen, zero guessing.
+            </div>
+          </div>
+        </div>
+        <div id="s5-chip-wrap" style="position:absolute; right:190px; top:190px;"></div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- AUDIO -->
+      <!-- ============================================================ -->
+      <audio
+        id="bgm"
+        src="assets/music/happy-beats-business-moves-vol-1-by-ende-dot-app.mp3"
+        data-start="0"
+        data-duration="21"
+        data-track-index="10"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":1,"v":0.55},{"t":13,"v":0.55},{"t":16,"v":0.85},{"t":18.5,"v":0.85},{"t":21,"v":0}]}]}'
+      ></audio>
+
+      <audio id="sfx-headline-type" src="assets/sfx/keypress-004.wav" data-start="0.1" data-track-index="100" data-volume="0.5"></audio>
+      <audio id="sfx-search-type" src="assets/sfx/keypress-012.wav" data-start="3.4" data-track-index="101" data-volume="0.55"></audio>
+      <audio id="sfx-filter-drop" src="assets/sfx/impactSoft_medium_001.ogg" data-start="4.5" data-track-index="102" data-volume="0.6"></audio>
+      <audio id="sfx-badges-tick" src="assets/sfx/click_003.ogg" data-start="8.0" data-track-index="103" data-volume="0.5"></audio>
+      <!-- beat-locked: 17.02s (strong_beat, 1.00) — the sort-reorder payoff -->
+      <audio id="sfx-reorder" src="assets/sfx/card-slide-1.ogg" data-start="17.02" data-track-index="104" data-volume="0.7"></audio>
+      <!-- beat-locked: 20.02s (strong_beat, 1.00) — outro button confirmation -->
+      <audio id="sfx-confirm" src="assets/sfx/click_005.ogg" data-start="20.02" data-track-index="105" data-volume="0.55"></audio>
+
+      <script>
+        // -----------------------------------------------------------
+        // Shared product data (mirrors QuestionnaireDashboard.tsx)
+        // -----------------------------------------------------------
+        var STATUS_STYLES = {
+          Completed: { pill: "#ecfdf5", text: "#047857", dot: "#10b981" },
+          "In Progress": { pill: "#eff6ff", text: "#1d4ed8", dot: "#3b82f6" },
+          "Needs Review": { pill: "#fffbeb", text: "#b45309", dot: "#f59e0b" },
+          Draft: { pill: "#f3f4f6", text: "#4b5563", dot: "#9ca3af" },
+        };
+        var ICON_BG = {
+          blue: { bg: "#eff6ff", fg: "#3b82f6" },
+          yellow: { bg: "#fffbeb", fg: "#f59e0b" },
+          red: { bg: "#fef2f2", fg: "#ef4444" },
+          green: { bg: "#ecfdf5", fg: "#10b981" },
+        };
+        var ROWS = [
+          { id: "1", name: "NovaTech Solutions", status: "Completed", updated: "Aug 26, 2026", icon: "blue", initials: "RV", assignee: "Robert Velter", avatarBg: "#fed7aa", avatarFg: "#9a3412" },
+          { id: "2", name: "BetaWorks Inc.", status: "In Progress", updated: "Aug 25, 2026", icon: "blue", initials: "NI", assignee: "Neha Iyer", avatarBg: "#c7d2fe", avatarFg: "#3730a3" },
+          { id: "3", name: "Stride Labs", status: "Needs Review", updated: "Aug 24, 2026", icon: "yellow", initials: "AM", assignee: "Arlian Monteran", avatarBg: "#e9d5ff", avatarFg: "#6b21a8" },
+          { id: "4", name: "PeopleFirst HR", status: "Completed", updated: "Aug 23, 2026", icon: "green", initials: "DP", assignee: "Denice Paul", avatarBg: "#fbcfe8", avatarFg: "#9d174d" },
+          { id: "5", name: "Lumen Inc.", status: "Draft", updated: "Aug 22, 2026", icon: "blue", initials: "KS", assignee: "Krish Sameul", avatarBg: "#bbf7d0", avatarFg: "#166534" },
+          { id: "6", name: "Wayne Enterprise", status: "In Progress", updated: "Aug 21, 2026", icon: "red", initials: "MJ", assignee: "Meera Joshi", avatarBg: "#fef08a", avatarFg: "#854d0e" },
+          { id: "7", name: "Eventure Co.", status: "Completed", updated: "Aug 20, 2026", icon: "green", initials: "IM", assignee: "Ian Major", avatarBg: "#bfdbfe", avatarFg: "#1e40af" },
+        ];
+        var COL = { name: 460, library: 300, status: 260, assignee: 300, updated: 280 };
+        var ROW_H = 72;
+
+        function svgEl(paths, size, extraAttrs) {
+          var ns = "http://www.w3.org/2000/svg";
+          var svg = document.createElementNS(ns, "svg");
+          svg.setAttribute("viewBox", "0 0 24 24");
+          svg.setAttribute("width", size);
+          svg.setAttribute("height", size);
+          svg.setAttribute("fill", "none");
+          svg.classList.add("icon");
+          for (var k in extraAttrs) svg.setAttribute(k, extraAttrs[k]);
+          paths.forEach(function (d) {
+            var p = document.createElementNS(ns, d.tag || "path");
+            for (var attr in d) {
+              if (attr === "tag") continue;
+              p.setAttribute(attr, d[attr]);
+            }
+            svg.appendChild(p);
+          });
+          return svg;
+        }
+
+        function iconSearch(size, color) {
+          return svgEl(
+            [
+              { tag: "circle", cx: "11", cy: "11", r: "8", stroke: color, "stroke-width": "2" },
+              { tag: "path", d: "m21 21-4.3-4.3", stroke: color, "stroke-width": "2", "stroke-linecap": "round" },
+            ],
+            size,
+          );
+        }
+        function iconPlus(size, color) {
+          return svgEl(
+            [
+              { d: "M5 12h14", stroke: color, "stroke-width": "2.2", "stroke-linecap": "round" },
+              { d: "M12 5v14", stroke: color, "stroke-width": "2.2", "stroke-linecap": "round" },
+            ],
+            size,
+          );
+        }
+        function iconChevronDown(size, color) {
+          return svgEl(
+            [{ d: "m6 9 6 6 6-6", stroke: color, "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }],
+            size,
+          );
+        }
+        function iconFileText(size, color) {
+          return svgEl(
+            [
+              { d: "M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z", stroke: color, "stroke-width": "1.8", "stroke-linejoin": "round" },
+              { d: "M14 2v6h6", stroke: color, "stroke-width": "1.8", "stroke-linejoin": "round" },
+              { d: "M8 13h8", stroke: color, "stroke-width": "1.8", "stroke-linecap": "round" },
+              { d: "M8 17h8", stroke: color, "stroke-width": "1.8", "stroke-linecap": "round" },
+            ],
+            size,
+          );
+        }
+        function iconShare(size, color) {
+          return svgEl(
+            [
+              { tag: "circle", cx: "18", cy: "5", r: "3", stroke: color, "stroke-width": "1.8" },
+              { tag: "circle", cx: "6", cy: "12", r: "3", stroke: color, "stroke-width": "1.8" },
+              { tag: "circle", cx: "18", cy: "19", r: "3", stroke: color, "stroke-width": "1.8" },
+              { d: "m8.6 13.5 6.8 4", stroke: color, "stroke-width": "1.8" },
+              { d: "m15.4 6.5-6.8 4", stroke: color, "stroke-width": "1.8" },
+            ],
+            size,
+          );
+        }
+        function iconMore(size, color) {
+          return svgEl(
+            [
+              { tag: "circle", cx: "5", cy: "12", r: "1.6", fill: color },
+              { tag: "circle", cx: "12", cy: "12", r: "1.6", fill: color },
+              { tag: "circle", cx: "19", cy: "12", r: "1.6", fill: color },
+            ],
+            size,
+          );
+        }
+
+        function el(tag, styleText, attrs) {
+          var e = document.createElement(tag);
+          if (styleText) e.style.cssText = styleText;
+          if (attrs) for (var k in attrs) e.setAttribute(k, attrs[k]);
+          return e;
+        }
+
+        // -----------------------------------------------------------
+        // Dashboard chrome (header + search bar) — shared shape
+        // -----------------------------------------------------------
+        function buildHeader(panel) {
+          var header = el(
+            "div",
+            "position:absolute; left:0; top:0; width:1600px; height:112px; display:flex; align-items:flex-start; justify-content:space-between;",
+          );
+
+          var titleWrap = el("div");
+          var title = el("div", "font-size:40px; font-weight:600; color:#111827; letter-spacing:-0.01em;");
+          title.textContent = "Questionnaire Dashboard";
+          var subtitle = el("div", "font-size:20px; color:#6b7280; margin-top:8px;");
+          subtitle.textContent = "Track and manage all your questionnaires in one place.";
+          titleWrap.appendChild(title);
+          titleWrap.appendChild(subtitle);
+
+          var actions = el("div", "display:flex; align-items:center; gap:14px;");
+
+          var acmePill = el(
+            "div",
+            "display:flex; align-items:center; gap:10px; border:1px solid #e5e7eb; background:#ffffff; border-radius:10px; padding:12px 18px; box-shadow:0 1px 2px rgba(16,24,40,0.05);",
+          );
+          acmePill.appendChild(iconFileText(20, "#9ca3af"));
+          var acmeLabel = el("span", "font-size:17px; font-weight:500; color:#374151;");
+          acmeLabel.textContent = "Acme Corp";
+          acmePill.appendChild(acmeLabel);
+          acmePill.appendChild(iconChevronDown(16, "#9ca3af"));
+
+          var newBtn = el(
+            "div",
+            "display:flex; align-items:center; gap:10px; background:#2563eb; color:#ffffff; border-radius:10px; padding:12px 22px; box-shadow:0 1px 2px rgba(16,24,40,0.05); position:relative;",
+            { id: panel.id + "-newbtn" },
+          );
+          newBtn.appendChild(iconPlus(19, "#ffffff"));
+          var newLabel = el("span", "font-size:17px; font-weight:500;");
+          newLabel.textContent = "New Questionnaire";
+          newBtn.appendChild(newLabel);
+
+          actions.appendChild(acmePill);
+          actions.appendChild(newBtn);
+          header.appendChild(titleWrap);
+          header.appendChild(actions);
+          panel.appendChild(header);
+        }
+
+        function buildSearchRow(panel, top, query) {
+          var row = el(
+            "div",
+            "position:absolute; left:0; top:" + top + "px; width:1600px; height:56px; display:flex; align-items:center; justify-content:space-between;",
+          );
+
+          var box = el(
+            "div",
+            "position:relative; width:460px; height:56px; border:1px solid #e5e7eb; background:#ffffff; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,0.05); display:flex; align-items:center; padding:0 18px 0 48px;",
+            { id: panel.id + "-searchbox", class: "search-box" },
+          );
+          var icon = el("div", "position:absolute; left:16px; top:50%; transform:translateY(-50%);");
+          icon.appendChild(iconSearch(20, "#9ca3af"));
+          box.appendChild(icon);
+          var textSpan = el("span", "font-size:18px; color:#111827;", { id: panel.id + "-searchtext" });
+          box.appendChild(textSpan);
+          var cursorBar = el("span", "", { class: "search-cursor-bar", id: panel.id + "-searchcursor" });
+          box.appendChild(cursorBar);
+          var placeholder = el("span", "font-size:18px; color:#6b7280; position:absolute; left:48px;", {
+            id: panel.id + "-placeholder",
+          });
+          placeholder.textContent = query ? "" : "Search questionnaires...";
+          box.appendChild(placeholder);
+
+          var right = el("div", "display:flex; align-items:center; gap:12px;");
+          var shareBtn = el(
+            "div",
+            "display:flex; align-items:center; gap:8px; border:1px solid #e5e7eb; background:#ffffff; border-radius:10px; padding:12px 18px; box-shadow:0 1px 2px rgba(16,24,40,0.05);",
+          );
+          shareBtn.appendChild(iconShare(18, "#374151"));
+          var shareLabel = el("span", "font-size:16px; font-weight:500; color:#374151;");
+          shareLabel.textContent = "Share";
+          shareBtn.appendChild(shareLabel);
+
+          var moreBtn = el(
+            "div",
+            "display:flex; align-items:center; justify-content:center; width:44px; height:44px; border:1px solid #e5e7eb; background:#ffffff; border-radius:10px; box-shadow:0 1px 2px rgba(16,24,40,0.05);",
+          );
+          moreBtn.appendChild(iconMore(18, "#6b7280"));
+
+          right.appendChild(shareBtn);
+          right.appendChild(moreBtn);
+          row.appendChild(box);
+          row.appendChild(right);
+          panel.appendChild(row);
+          return { textSpan: textSpan, placeholder: placeholder, cursorBar: cursorBar, box: box };
+        }
+
+        function buildTableHeader(container, top) {
+          var labels = [
+            ["Questionnaire", COL.name],
+            ["Library", COL.library],
+            ["Status", COL.status],
+            ["Assignee", COL.assignee],
+            ["Last Updated", COL.updated],
+          ];
+          var header = el(
+            "div",
+            "position:absolute; left:0; top:0; width:1600px; height:52px; display:flex; align-items:center; border-bottom:1px solid #f3f4f6; padding:0 28px;",
+          );
+          labels.forEach(function (pair) {
+            var cell = el(
+              "div",
+              "width:" + pair[1] + "px; display:flex; align-items:center; gap:6px;",
+            );
+            var label = el("span", "font-size:14px; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:#6b7280;");
+            label.textContent = pair[0];
+            cell.appendChild(label);
+            if (pair[0] === "Last Updated") {
+              cell.appendChild(iconChevronDown(13, "#9ca3af"));
+              cell.setAttribute("data-col", "updated");
+              cell.id = container.id + "-col-updated";
+            }
+            header.appendChild(cell);
+          });
+          container.appendChild(header);
+          return header;
+        }
+
+        function buildRow(row, index) {
+          var r = el("div", "top:" + index * ROW_H + "px;", { class: "q-row" });
+          r.style.padding = "0 28px";
+
+          // Questionnaire (icon + name)
+          var c1 = el("div", "width:" + COL.name + "px; display:flex; align-items:center; gap:14px;");
+          var iconBg = ICON_BG[row.icon];
+          var iconSq = el(
+            "div",
+            "width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:" +
+              iconBg.bg +
+              ";",
+          );
+          iconSq.appendChild(iconFileText(19, iconBg.fg));
+          var nameSpan = el("span", "font-size:19px; font-weight:500; color:#111827;");
+          nameSpan.textContent = row.name;
+          c1.appendChild(iconSq);
+          c1.appendChild(nameSpan);
+
+          // Library
+          var c2 = el("div", "width:" + COL.library + "px; font-size:18px; color:#4b5563;");
+          c2.textContent = row.name;
+
+          // Status
+          var c3 = el("div", "width:" + COL.status + "px;");
+          var st = STATUS_STYLES[row.status];
+          var pill = el(
+            "span",
+            "display:inline-flex; align-items:center; gap:8px; border-radius:9999px; padding:8px 16px; font-size:15px; font-weight:500; background:" +
+              st.pill +
+              "; color:" +
+              st.text +
+              ";",
+          );
+          var dot = el("span", "width:8px; height:8px; border-radius:9999px; display:inline-block; background:" + st.dot + ";");
+          pill.appendChild(dot);
+          var stText = document.createTextNode(row.status);
+          pill.appendChild(stText);
+          c3.appendChild(pill);
+
+          // Assignee
+          var c4 = el("div", "width:" + COL.assignee + "px; display:flex; align-items:center; gap:12px;");
+          var avatar = el(
+            "span",
+            "width:36px; height:36px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:600; background:" +
+              row.avatarBg +
+              "; color:" +
+              row.avatarFg +
+              ";",
+          );
+          avatar.textContent = row.initials;
+          var assigneeName = el("span", "font-size:18px; color:#374151;");
+          assigneeName.textContent = row.assignee;
+          c4.appendChild(avatar);
+          c4.appendChild(assigneeName);
+
+          // Last updated
+          var c5 = el("div", "width:" + COL.updated + "px; font-size:17px; color:#6b7280;");
+          c5.textContent = row.updated;
+
+          r.appendChild(c1);
+          r.appendChild(c2);
+          r.appendChild(c3);
+          r.appendChild(c4);
+          r.appendChild(c5);
+          return r;
+        }
+
+        function buildTableCard(panel, top, height, order, idPrefix) {
+          var card = el(
+            "div",
+            "position:absolute; left:0; top:" + top + "px; width:1600px; height:" + height + "px; background:#ffffff; border:1px solid #e5e7eb; border-radius:16px; box-shadow:0 1px 2px rgba(16,24,40,0.05); overflow:hidden;",
+            { id: idPrefix },
+          );
+          buildTableHeader(card, 0);
+          var body = el(
+            "div",
+            "position:absolute; left:0; top:52px; width:1600px; height:" + order.length * ROW_H + "px; overflow:hidden;",
+            { id: idPrefix + "-body" },
+          );
+          order.forEach(function (row, i) {
+            var rEl = buildRow(row, i);
+            rEl.id = idPrefix + "-row-" + row.id;
+            body.appendChild(rEl);
+          });
+          card.appendChild(body);
+          panel.appendChild(card);
+          return { card: card, body: body };
+        }
+
+        // -----------------------------------------------------------
+        // Build all scenes once (deterministic, no per-frame work)
+        // -----------------------------------------------------------
+        document.fonts.ready.then(function () {
+          // Scene 1
+          var s1 = document.getElementById("s1-panel");
+          buildHeader(s1);
+          buildSearchRow(s1, 144, "");
+          buildTableCard(s1, 224, 52 + 7 * ROW_H, ROWS, "s1-table");
+
+          var s1HeadlineFull = "7 questionnaires. 4 companies waiting on you.";
+          var s1HeadlineEl = document.getElementById("s1-headline");
+          var s1Cursor = el("span", "", { class: "headline-cursor" });
+
+          // Scene 2
+          var s2 = document.getElementById("s2-panel");
+          buildHeader(s2);
+          var s2Search = buildSearchRow(s2, 144, "Stride");
+          var s2Table = buildTableCard(s2, 224, 52 + 7 * ROW_H, ROWS, "s2-table");
+
+          // mouse cursor for scene 2, positioned near search box
+          var s2CursorSvg = svgEl(
+            [{ d: "M3 3l7.07 16.97 2.51-7.39 7.39-2.51z", fill: "#111827", stroke: "#ffffff", "stroke-width": "1" }],
+            30,
+          );
+          var s2CursorWrap = document.getElementById("s2-cursor-wrap");
+          var s2Cursor = el("div", "position:absolute; left:" + (160 + 70) + "px; top:" + (96 + 144 + 20) + "px; opacity:0;", { class: "mouse-cursor", id: "s2-mouse" });
+          s2Cursor.appendChild(s2CursorSvg);
+          s2CursorWrap.appendChild(s2Cursor);
+
+          // Scene 3
+          var badgeOrder = ["Completed", "In Progress", "Needs Review", "Draft"];
+          var badgesWrap = document.getElementById("s3-badges");
+          badgeOrder.forEach(function (statusName) {
+            var st = STATUS_STYLES[statusName];
+            var pill = el(
+              "span",
+              "display:inline-flex; align-items:center; gap:12px; border-radius:9999px; padding:18px 32px; font-size:26px; font-weight:600; background:" +
+                st.pill +
+                "; color:" +
+                st.text +
+                "; opacity:0;",
+              { class: "s3-badge" },
+            );
+            var dot = el("span", "width:16px; height:16px; border-radius:9999px; display:inline-block; background:" + st.dot + ";");
+            pill.appendChild(dot);
+            pill.appendChild(document.createTextNode(statusName));
+            badgesWrap.appendChild(pill);
+          });
+
+          var avatarOrder = [ROWS[0], ROWS[1], ROWS[2], ROWS[3]];
+          var avatarsWrap = document.getElementById("s3-avatars");
+          avatarOrder.forEach(function (row) {
+            var wrap = el("div", "display:flex; flex-direction:column; align-items:center; gap:10px; opacity:0;", { class: "s3-avatar" });
+            var avatar = el(
+              "span",
+              "width:76px; height:76px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:600; background:" +
+                row.avatarBg +
+                "; color:" +
+                row.avatarFg +
+                ";",
+            );
+            avatar.textContent = row.initials;
+            var name = el("span", "font-size:17px; color:#4b5563;");
+            name.textContent = row.assignee.split(" ")[0];
+            wrap.appendChild(avatar);
+            wrap.appendChild(name);
+            avatarsWrap.appendChild(wrap);
+          });
+
+          // Scene 4 — "before" = alphabetical order, "after" = date-desc (ROWS order)
+          var s4 = document.getElementById("s4-panel");
+          buildHeader(s4);
+          buildSearchRow(s4, 144, "");
+          var beforeOrder = ROWS.slice().sort(function (a, b) {
+            return a.name.localeCompare(b.name);
+          });
+          var s4Table = buildTableCard(s4, 224, 52 + 7 * ROW_H, beforeOrder, "s4-table");
+          var s4TargetIndex = {};
+          ROWS.forEach(function (row, i) {
+            s4TargetIndex[row.id] = i;
+          });
+
+          var s4CursorWrap = document.getElementById("s4-cursor-wrap");
+          var s4CursorSvg = svgEl(
+            [{ d: "M3 3l7.07 16.97 2.51-7.39 7.39-2.51z", fill: "#111827", stroke: "#ffffff", "stroke-width": "1" }],
+            30,
+          );
+          var headerColEl = document.getElementById("s4-table-col-updated");
+          var headerColRect = headerColEl.getBoundingClientRect();
+          var panelRect = s4.getBoundingClientRect();
+          var s4Cursor = el(
+            "div",
+            "position:absolute; left:" + (headerColRect.left - panelRect.left + 160 + 40) + "px; top:" + (headerColRect.top - panelRect.top + 96 + 30) + "px; opacity:0;",
+            { class: "mouse-cursor", id: "s4-mouse" },
+          );
+          s4Cursor.appendChild(s4CursorSvg);
+          s4CursorWrap.appendChild(s4Cursor);
+
+          // Scene 5 — clean outro card, no dashboard backdrop
+          var chipWrap = document.getElementById("s5-chip-wrap");
+          var chip = el(
+            "div",
+            "display:flex; align-items:center; gap:10px; background:#2563eb; color:#ffffff; border-radius:10px; padding:14px 26px; font-size:19px; font-weight:500; opacity:0;",
+            { id: "s5-chip" },
+          );
+          chip.appendChild(iconPlus(20, "#ffffff"));
+          chip.appendChild(document.createTextNode("New Questionnaire"));
+          chipWrap.appendChild(chip);
+
+          // -----------------------------------------------------------
+          // Build the timeline now that DOM exists
+          // -----------------------------------------------------------
+          var tl = gsap.timeline({ paused: true });
+
+          // ---- Scene 1: headline smooth-slice typing ----
+          var s1Len = { v: 0 };
+          s1HeadlineEl.appendChild(document.createTextNode(""));
+          s1HeadlineEl.appendChild(s1Cursor);
+          tl.to(
+            s1Len,
+            {
+              v: s1HeadlineFull.length,
+              duration: 1.3,
+              ease: "power1.inOut",
+              onUpdate: function () {
+                s1HeadlineEl.childNodes[0].nodeValue = s1HeadlineFull.substring(0, Math.floor(s1Len.v));
+              },
+            },
+            0,
+          );
+          // deterministic cursor blink, 2 whole cycles across the 3s scene
+          var s1Blink = { p: 0 };
+          tl.to(
+            s1Blink,
+            {
+              p: Math.PI * 2 * 4,
+              duration: 3,
+              ease: "none",
+              onUpdate: function () {
+                s1Cursor.style.opacity = Math.sin(s1Blink.p) > 0 ? "1" : "0";
+              },
+            },
+            0,
+          );
+          tl.fromTo("#s1-panel", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, 0);
+
+          // ---- Scene 2 ----
+          tl.fromTo("#s2-panel", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 3.0);
+          tl.to("#s2-mouse", { opacity: 1, duration: 0.2 }, 3.2);
+          tl.to("#s2-mouse", { x: 20, y: -6, duration: 0.3, ease: "power2.out" }, 3.2);
+
+          var s2Query = "Stride";
+          var s2Len = { v: 0 };
+          document.getElementById("s2-panel-searchtext").appendChild(document.createTextNode(""));
+          tl.to(
+            s2Len,
+            {
+              v: s2Query.length,
+              duration: 0.9,
+              ease: "power1.inOut",
+              onUpdate: function () {
+                var t = s2Query.substring(0, Math.floor(s2Len.v));
+                document.getElementById("s2-panel-searchtext").childNodes[0].nodeValue = t;
+                document.getElementById("s2-panel-placeholder").style.opacity = t.length ? "0" : "1";
+              },
+            },
+            3.4,
+          );
+          // cursor bar blink while search box is active (3.4 - 5.7)
+          var s2Blink = { p: 0 };
+          tl.to(
+            s2Blink,
+            {
+              p: Math.PI * 2 * 3,
+              duration: 2.3,
+              ease: "none",
+              onUpdate: function () {
+                document.getElementById("s2-panel-searchcursor").style.opacity = Math.sin(s2Blink.p) > 0 ? "1" : "0";
+              },
+            },
+            3.4,
+          );
+
+          // filter: hide the 6 non-matching rows, staggered, starting 7.5 (local 4.5)
+          var nonMatching = ROWS.filter(function (r) {
+            return r.name.indexOf("Stride") === -1;
+          });
+          nonMatching.forEach(function (row, i) {
+            tl.to(
+              "#s2-table-row-" + row.id,
+              { opacity: 0, height: 0, duration: 0.35, ease: "power1.in" },
+              7.5 + i * 0.15,
+            );
+          });
+          // collapse the table body height to match the single remaining row
+          tl.to("#s2-table-body", { height: ROW_H, duration: 0.35, ease: "power1.inOut" }, 7.5 + nonMatching.length * 0.15 - 0.1);
+          tl.to("#s2-table", { height: 52 + ROW_H, duration: 0.35, ease: "power1.inOut" }, 7.5 + nonMatching.length * 0.15 - 0.1);
+          // nudge the remaining row to the top — transform, not `top`, so motion stays sub-pixel smooth
+          var s2MatchIndex = ROWS.findIndex(function (r) {
+            return r.name.indexOf("Stride") !== -1;
+          });
+          tl.to(
+            "#s2-table-row-3",
+            { y: -(s2MatchIndex * ROW_H), duration: 0.35, ease: "power1.inOut" },
+            7.5 + nonMatching.length * 0.15 - 0.1,
+          );
+
+          // ---- Scene 3: badges then avatars, quick reveal + hold ----
+          var badgeEls = document.querySelectorAll(".s3-badge");
+          badgeEls.forEach(function (b, i) {
+            tl.fromTo(b, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.3, ease: "back.out(1.6)" }, 8.0 + i * 0.28);
+          });
+          var avatarEls = document.querySelectorAll(".s3-avatar");
+          avatarEls.forEach(function (a, i) {
+            tl.fromTo(a, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.28, ease: "back.out(1.6)" }, 10.4 + i * 0.12);
+          });
+
+          // ---- Scene 4: sort reorder, beat-locked at 17.02 ----
+          tl.fromTo("#s4-panel", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 13.0);
+          tl.to("#s4-mouse", { opacity: 1, duration: 0.2 }, 13.6);
+          tl.to("#s4-mouse", { scale: 0.85, duration: 0.12, yoyo: true, repeat: 1 }, 16.9); // click bounce just before the beat
+          // beat-locked: 17.02s (strong_beat, 1.00) — transform, not `top`, so motion stays sub-pixel smooth
+          beforeOrder.forEach(function (row, currentIndex) {
+            var deltaY = (s4TargetIndex[row.id] - currentIndex) * ROW_H;
+            tl.to("#s4-table-row-" + row.id, { y: deltaY, duration: 0.6, ease: "power3.inOut" }, 17.02);
+          });
+          tl.to(headerColEl, { color: "#2563eb", duration: 0.2 }, 17.02);
+
+          // ---- Scene 5: outro resolve + beat-locked button chip ----
+          tl.fromTo("#s5-outro", { opacity: 0, y: 18, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: "power3.out" }, 18.1);
+          // beat-locked: 20.02s (strong_beat, 1.00)
+          tl.fromTo("#s5-chip", { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.22, ease: "back.out(2)" }, 20.02);
+          tl.to("#s5-chip", { scale: 1.04, duration: 0.12, yoyo: true, repeat: 1 }, 20.24);
+          tl.to("#s5-outro", { opacity: 0, duration: 0.25 }, 20.75);
+
+          window.__timelines["brag"] = tl;
+          tl.seek(0);
+        });
+      </script>
+    </div>
+  </body>
+</html>
