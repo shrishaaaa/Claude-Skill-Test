@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-400.ttf") format("truetype");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-500.ttf") format("truetype");
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-600.ttf") format("truetype");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-700.ttf") format("truetype");
+        font-weight: 700;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f5f6f8;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        background: #f5f6f8;
+        font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+      }
+      .scene {
+        background: #f5f6f8;
+      }
+      .inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .shot {
+        position: absolute;
+        display: block;
+      }
+      /* Reusable overlay layers — one instance each, repositioned across the whole timeline */
+      #cursor {
+        position: absolute;
+        width: 30px;
+        height: 34px;
+        left: 0;
+        top: 0;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+      }
+      #hover-glow {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(37, 99, 235, 0.16);
+        box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.35) inset;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 40;
+      }
+      #ripple {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 14px;
+        height: 14px;
+        margin-left: -7px;
+        margin-top: -7px;
+        border-radius: 9999px;
+        border: 2px solid rgba(37, 99, 235, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 41;
+      }
+      .type-cover {
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: #ffffff;
+        z-index: 20;
+      }
+      .type-text {
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #111827;
+        white-space: pre;
+        z-index: 21;
+      }
+      .type-caret {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        background: #111827;
+        z-index: 22;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="brag"
+      data-start="0"
+      data-duration="31.5"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <!--
+        Per-scene image placement (computed to fit each screenshot's real aspect
+        ratio into the 1920x1080 canvas with no distortion — "contain", centered):
+          scene1 (2000x1193): scale 0.90528  -> 1810.6 x 1080.0  offset (54.7, 0)
+          scene2 (2000x1193): scale 0.90528  -> 1810.6 x 1080.0  offset (54.7, 0)
+          scene3 (1820x970) : scale 1.05495  -> 1920.0 x 1023.3  offset (0, 28.35)
+          scene4 (2000x1195): scale 0.903766 -> 1807.5 x 1080.0  offset (56.24, 0)
+          scene5 (2000x1195): scale 0.903766 -> 1807.5 x 1080.0  offset (56.24, 0)
+
+        Measured real-UI coordinates below are in ORIGINAL screenshot pixels;
+        the build script converts them to canvas pixels with the same formula
+        (canvasX = offsetX + origX*scale, canvasY = offsetY + origY*scale).
+      -->
+
+      <!-- SCENE 1 — Questionnaire invitation — 0-5.5s -->
+      <section id="scene1" class="clip scene" data-start="0" data-duration="5.5" data-track-index="0">
+        <div class="inner" id="scene1-inner">
+          <img class="shot" id="scene1-img" src="assets/screens/scene1-invite.png" style="left:54.7px; top:0; width:1810.6px; height:1080px;" />
+        </div>
+      </section>
+
+      <!-- SCENE 2 — Check your email — 5.5-9.5s -->
+      <section id="scene2" class="clip scene" data-start="5.5" data-duration="4.0" data-track-index="0">
+        <div class="inner" id="scene2-inner" style="opacity:0;">
+          <img class="shot" id="scene2-img" src="assets/screens/scene2-check-email.png" style="left:54.7px; top:0; width:1810.6px; height:1080px;" />
+        </div>
+      </section>
+
+      <!-- SCENE 3 — SecurityPal AI dashboard — 9.5-15.5s -->
+      <section id="scene3" class="clip scene" data-start="9.5" data-duration="6.0" data-track-index="0">
+        <div class="inner" id="scene3-inner" style="opacity:0;">
+          <img class="shot" id="scene3-img" src="assets/screens/scene3-dashboard.png" style="left:0; top:28.35px; width:1920px; height:1023.3px;" />
+        </div>
+      </section>
+
+      <!-- SCENE 4 — VendorCorp questionnaire detail — 15.5-20.5s -->
+      <section id="scene4" class="clip scene" data-start="15.5" data-duration="5.0" data-track-index="0">
+        <div class="inner" id="scene4-inner" style="opacity:0;">
+          <img class="shot" id="scene4-img" src="assets/screens/scene4-detail.png" style="left:56.24px; top:0; width:1807.5px; height:1080px;" />
+        </div>
+      </section>
+
+      <!-- SCENE 5/6 — Answering + comment (same screenshot, camera pan) — 20.5-31.5s -->
+      <section id="scene5" class="clip scene" data-start="20.5" data-duration="11.0" data-track-index="0">
+        <div class="inner" id="scene5-inner" style="opacity:0;">
+          <img class="shot" id="scene5-img" src="assets/screens/scene5-answer.png" style="left:56.24px; top:0; width:1807.5px; height:1080px;" />
+
+          <!-- typed-response overlay (scene-local, moves with the pan) -->
+          <div class="type-cover" id="resp-cover" style="left:512.6px; top:296px; width:790px; height:34px; opacity:0;"></div>
+          <span class="type-text" id="resp-text" style="left:516px; top:298px; font-size:19px; font-weight:400; opacity:0;"></span>
+          <div class="type-caret" id="resp-caret" style="left:516px; top:300px; height:22px; opacity:0;"></div>
+
+          <!-- typed-comment overlay -->
+          <div class="type-cover" id="comment-cover" style="left:1462px; top:843px; width:390px; height:30px; opacity:0;"></div>
+          <span class="type-text" id="comment-text" style="left:1466px; top:844px; font-size:16px; font-weight:400; opacity:0;"></span>
+          <div class="type-caret" id="comment-caret" style="left:1466px; top:846px; height:19px; opacity:0;"></div>
+
+          <!-- posted confirmation -->
+          <div id="posted-check" style="position:absolute; left:1808px; top:945px; opacity:0; z-index:23;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="11" fill="#16a34a" />
+              <path d="m7.5 12.5 2.8 2.8 6.2-6.6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- SHARED OVERLAY LAYER — cursor, hover glow, click ripple (not time-clipped; driven by the one main timeline) -->
+      <div id="hover-glow"></div>
+      <div id="ripple"></div>
+      <svg id="cursor" viewBox="0 0 24 26" style="left:0;top:0;">
+        <path d="M2 1.5 L2 20.5 L7.2 16.3 L10.4 23.4 L13.2 22.1 L10.1 15.1 L16.8 14.6 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.4" stroke-linejoin="round" />
+      </svg>
+
+      <script>
+       document.fonts.ready.then(function () {
+        var tl = gsap.timeline({ paused: true });
+
+        // ---------------------------------------------------------------
+        // Coordinate helpers — convert measured ORIGINAL screenshot pixel
+        // coordinates to this canvas's pixel space, per scene's scale/offset.
+        // ---------------------------------------------------------------
+        var SC = {
+          s1: { scale: 0.90528, ox: 54.72, oy: 0 },
+          s3: { scale: 1.05495, ox: 0, oy: 28.35 },
+          s4: { scale: 0.903766, ox: 56.235, oy: 0 },
+        };
+        function toCanvas(sc, x, y) {
+          return { x: sc.ox + x * sc.scale, y: sc.oy + y * sc.scale };
+        }
+
+        // Measured real-UI points (original screenshot px) -> canvas px
+        var startBtn = toCanvas(SC.s1, 991, 770); // scene1 "Start questionnaire" center
+        var viewBtn = toCanvas(SC.s3, 1641, 522); // scene3 "View" button (VendorCorp row) center
+        var viewBtnTL = toCanvas(SC.s3, 1608, 502);
+        var viewBtnBR = toCanvas(SC.s3, 1675, 542);
+        var rowTL = toCanvas(SC.s3, 343, 497);
+        var rowBR = toCanvas(SC.s3, 1798, 547);
+        var q1Point = toCanvas(SC.s4, 1300, 345); // scene4 first question line
+
+        // Scene5 uses the same scale/offset as scene4 (SC.s4)
+        var respFieldPoint = toCanvas(SC.s4, 560, 350);
+        var respFieldTL = toCanvas(SC.s4, 509, 252);
+        var respFieldBR = toCanvas(SC.s4, 1381, 517);
+        var commentLinkTL = toCanvas(SC.s4, 510, 551);
+        var commentLinkBR = toCanvas(SC.s4, 736, 569);
+        var commentLinkPoint = toCanvas(SC.s4, 620, 560);
+        var commentBoxPoint = toCanvas(SC.s4, 1570, 950);
+        var commentBoxTL = toCanvas(SC.s4, 1552, 910);
+        var commentBoxBR = toCanvas(SC.s4, 1986, 1044);
+        var commentBtnTL = toCanvas(SC.s4, 1892, 1061);
+        var commentBtnBR = toCanvas(SC.s4, 1986, 1099);
+        var commentBtnPoint = toCanvas(SC.s4, 1939, 1080);
+
+        // ---------------------------------------------------------------
+        // Reusable overlay helpers
+        // ---------------------------------------------------------------
+        function cursorTo(time, x, y, dur, ease) {
+          tl.to("#cursor", { x: x - 3, y: y - 2, opacity: 1, duration: dur, ease: ease || "power2.inOut" }, time);
+        }
+        function cursorHide(time, dur) {
+          tl.to("#cursor", { opacity: 0, duration: dur || 0.25 }, time);
+        }
+        function glowOn(time, tl_, br_, dur) {
+          var w = br_.x - tl_.x,
+            h = br_.y - tl_.y;
+          tl.set("#hover-glow", { left: tl_.x, top: tl_.y, width: w, height: h, borderRadius: Math.min(14, h / 2) }, time);
+          tl.to("#hover-glow", { opacity: 1, duration: dur || 0.18 }, time);
+        }
+        function glowOff(time, dur) {
+          tl.to("#hover-glow", { opacity: 0, duration: dur || 0.2 }, time);
+        }
+        function pressRipple(time, x, y) {
+          tl.to("#cursor", { scale: 0.88, duration: 0.09, yoyo: true, repeat: 1 }, time);
+          tl.set("#ripple", { left: x, top: y, scale: 0.3, opacity: 0.85 }, time);
+          tl.to("#ripple", { scale: 2.4, opacity: 0, duration: 0.45, ease: "power2.out" }, time);
+        }
+
+        // Build-time-only DOM measurement (never inside a timeline callback —
+        // callbacks re-fire on every seek in non-linear render order, which
+        // makes getBoundingClientRect reads there seek-order-dependent/stale).
+        function measureTextWidth(text, fontWeight, fontSizePx) {
+          var probe = document.createElement("span");
+          probe.style.position = "absolute";
+          probe.style.visibility = "hidden";
+          probe.style.whiteSpace = "pre";
+          probe.style.fontFamily = "Inter, ui-sans-serif, system-ui, sans-serif";
+          probe.style.fontWeight = fontWeight;
+          probe.style.fontSize = fontSizePx + "px";
+          probe.textContent = text;
+          document.body.appendChild(probe);
+          var w = probe.getBoundingClientRect().width;
+          document.body.removeChild(probe);
+          return w;
+        }
+
+        // Typing driver factory — smooth-slice reveal into a fixed-position span,
+        // with a deterministic blinking caret (sin square wave), seek-safe.
+        // Caret x is interpolated from a width measured once at build time
+        // (not per-frame) — a pure function of the driver's time, safe to seek.
+        function typeText(startTime, fullText, textSel, caretSel, coverSel, cps, caretX0, fontWeight, fontSizePx) {
+          var dur = fullText.length / cps;
+          var fullWidth = measureTextWidth(fullText, fontWeight, fontSizePx);
+          tl.to(coverSel, { opacity: 1, duration: 0.01 }, startTime);
+          tl.to(textSel, { opacity: 1, duration: 0.01 }, startTime);
+          tl.to(caretSel, { opacity: 1, duration: 0.01 }, startTime);
+          var driver = { n: 0 };
+          var textEl = document.querySelector(textSel);
+          var caretEl = document.querySelector(caretSel);
+          tl.to(
+            driver,
+            {
+              n: fullText.length,
+              duration: dur,
+              ease: "none",
+              onUpdate: function () {
+                var frac = fullText.length ? driver.n / fullText.length : 0;
+                textEl.textContent = fullText.substring(0, Math.floor(driver.n));
+                caretEl.style.left = caretX0 + fullWidth * frac + 2 + "px";
+              },
+            },
+            startTime,
+          );
+          var blink = { p: 0 };
+          tl.to(
+            blink,
+            {
+              p: Math.PI * 2 * Math.max(1, Math.round(dur / 0.5)),
+              duration: dur,
+              ease: "none",
+              onUpdate: function () {
+                caretEl.style.opacity = Math.sin(blink.p) > 0 ? "1" : "0";
+              },
+            },
+            startTime,
+          );
+          return startTime + dur;
+        }
+        function fadeOutOverlay(time, sels, dur) {
+          sels.forEach(function (s) {
+            tl.to(s, { opacity: 0, duration: dur || 0.2 }, time);
+          });
+        }
+
+        // ---------------------------------------------------------------
+        // SCENE 1 — 0-5.5s — invitation, still, cursor -> hover -> click
+        // ---------------------------------------------------------------
+        tl.fromTo("#scene1-inner", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0);
+        // 0.0-1.6s completely still (no cursor yet)
+        tl.set("#cursor", { x: 120, y: 950, opacity: 0 }, 0);
+        cursorTo(1.6, startBtn.x, startBtn.y, 1.15, "power2.out");
+        glowOn(2.85, viewBtnTLfix(), viewBtnBRfix(), 0.18);
+        pressRipple(3.35, startBtn.x, startBtn.y);
+        glowOff(3.55, 0.25);
+        cursorHide(3.75, 0.3);
+        tl.to("#scene1-inner", { opacity: 0, duration: 0.3 }, 5.2);
+
+        // helper wrappers (scene1's own start-button box, defined after use above needs hoist -> define functions first)
+        function viewBtnTLfix() {
+          return toCanvas(SC.s1, 599, 741);
+        }
+        function viewBtnBRfix() {
+          return toCanvas(SC.s1, 1383, 799);
+        }
+
+        // ---------------------------------------------------------------
+        // SCENE 2 — 5.5-9.5s — check your email, ambient cursor only
+        // ---------------------------------------------------------------
+        tl.fromTo("#scene2-inner", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 5.5);
+        var emailPoint = toCanvas(SC.s1, 1000, 500);
+        tl.set("#cursor", { x: 300, y: 200, opacity: 0 }, 5.5);
+        cursorTo(7.0, emailPoint.x, emailPoint.y, 1.1, "power1.inOut");
+        cursorTo(8.3, emailPoint.x + 90, emailPoint.y + 60, 0.7, "power1.inOut");
+        cursorHide(8.9, 0.3);
+        tl.to("#scene2-inner", { opacity: 0, duration: 0.3 }, 9.2);
+
+        // ---------------------------------------------------------------
+        // SCENE 3 — 9.5-15.5s — dashboard, VendorCorp row -> View -> zoom
+        // ---------------------------------------------------------------
+        tl.fromTo("#scene3-inner", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 9.5);
+        tl.set("#cursor", { x: 1500, y: 120, opacity: 0, scale: 1 }, 9.5);
+        // brief highlight pulse on the VendorCorp row to draw the eye
+        tl.fromTo(
+          "#hover-glow",
+          { opacity: 0 },
+          { opacity: 1, duration: 0.35, yoyo: true, repeat: 1 },
+          10.0,
+        );
+        tl.set("#hover-glow", { left: rowTL.x, top: rowTL.y, width: rowBR.x - rowTL.x, height: rowBR.y - rowTL.y, borderRadius: 12 }, 10.0);
+        cursorTo(10.9, viewBtn.x, viewBtn.y, 1.1, "power2.inOut");
+        glowOn(12.1, viewBtnTL, viewBtnBR, 0.16);
+        pressRipple(12.55, viewBtn.x, viewBtn.y);
+        glowOff(12.75, 0.2);
+        cursorHide(12.9, 0.25);
+        // gentle zoom toward the clicked row/button before the crossfade out
+        tl.to("#scene3-inner", { scale: 1.08, x: -90, y: -15, duration: 0.9, ease: "power2.inOut" }, 13.0);
+        tl.to("#scene3-inner", { opacity: 0, duration: 0.4 }, 15.1);
+
+        // ---------------------------------------------------------------
+        // SCENE 4 — 15.5-20.5s — questionnaire detail, scan -> click Q1
+        // ---------------------------------------------------------------
+        tl.fromTo("#scene4-inner", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" }, 15.5);
+        tl.set("#cursor", { x: 1750, y: 200, opacity: 0 }, 15.5);
+        cursorTo(16.5, q1Point.x, q1Point.y, 1.15, "power2.inOut");
+        glowOn(17.85, toCanvas(SC.s4, 1097, 322), toCanvas(SC.s4, 1660, 368), 0.16);
+        pressRipple(18.35, q1Point.x, q1Point.y);
+        glowOff(18.55, 0.2);
+        cursorHide(18.75, 0.25);
+        tl.to("#scene4-inner", { opacity: 0, duration: 0.35 }, 20.05);
+
+        // ---------------------------------------------------------------
+        // SCENE 5 — 20.5-25.8s — answering: click field, type, click comment link
+        // ---------------------------------------------------------------
+        tl.fromTo("#scene5-inner", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 20.5);
+        tl.set("#cursor", { x: 1750, y: 850, opacity: 0, scale: 1 }, 20.5);
+        cursorTo(21.3, respFieldPoint.x, respFieldPoint.y, 0.7, "power2.inOut");
+        glowOn(21.9, respFieldTL, respFieldBR, 0.14);
+        pressRipple(22.05, respFieldPoint.x, respFieldPoint.y);
+        glowOff(22.2, 0.15);
+        var respEnd = typeText(22.15, "The Acceptable Use Policy is reviewed and updated annually…", "#resp-text", "#resp-caret", "#resp-cover", 46, 516, 400, 19);
+        tl.to("#resp-caret", { opacity: 0, duration: 0.2 }, respEnd + 0.6);
+        cursorTo(respEnd + 0.7, commentLinkPoint.x, commentLinkPoint.y, 0.8, "power2.inOut");
+        glowOn(respEnd + 1.55, commentLinkTL, commentLinkBR, 0.14);
+        pressRipple(respEnd + 1.85, commentLinkPoint.x, commentLinkPoint.y);
+        glowOff(respEnd + 2.05, 0.2);
+        cursorHide(respEnd + 2.15, 0.25);
+
+        // ---------------------------------------------------------------
+        // SCENE 5->6 camera pan — shift focus from the editor to the
+        // right-side Comments panel (same screenshot, no scene cut)
+        // ---------------------------------------------------------------
+        var panStart = respEnd + 2.35;
+        tl.to("#scene5-inner", { scale: 1.16, x: -170, y: -25, duration: 1.0, ease: "power2.inOut" }, panStart);
+
+        // ---------------------------------------------------------------
+        // SCENE 6 (same shot) — comment box -> type -> click Comment -> confirm
+        // ---------------------------------------------------------------
+        var commentStart = panStart + 1.2;
+        tl.set("#cursor", { x: commentBoxPoint.x + 250, y: commentBoxPoint.y - 200, opacity: 0 }, commentStart);
+        cursorTo(commentStart + 0.15, commentBoxPoint.x, commentBoxPoint.y, 0.7, "power2.inOut");
+        glowOn(commentStart + 0.75, commentBoxTL, commentBoxBR, 0.14);
+        pressRipple(commentStart + 0.9, commentBoxPoint.x, commentBoxPoint.y);
+        glowOff(commentStart + 1.05, 0.15);
+        var cmtEnd = typeText(commentStart + 1.1, "Reviewed and confirmed — thanks!", "#comment-text", "#comment-caret", "#comment-cover", 42, 1466, 400, 16);
+        tl.to("#comment-caret", { opacity: 0, duration: 0.2 }, cmtEnd + 0.4);
+        cursorTo(cmtEnd + 0.55, commentBtnPoint.x, commentBtnPoint.y, 0.7, "power2.inOut");
+        glowOn(cmtEnd + 1.2, commentBtnTL, commentBtnBR, 0.14);
+        pressRipple(cmtEnd + 1.45, commentBtnPoint.x, commentBtnPoint.y);
+        glowOff(cmtEnd + 1.65, 0.2);
+        cursorHide(cmtEnd + 1.75, 0.25);
+        tl.fromTo("#posted-check", { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, cmtEnd + 1.7);
+
+        window.__timelines["brag"] = tl;
+        tl.seek(0);
+       });
+      </script>
+    </div>
+  </body>
+</html>
