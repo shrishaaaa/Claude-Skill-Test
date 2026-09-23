@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-400.ttf") format("truetype");
+        font-weight: 400;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-500.ttf") format("truetype");
+        font-weight: 500;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-600.ttf") format("truetype");
+        font-weight: 600;
+      }
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/Inter-700.ttf") format("truetype");
+        font-weight: 700;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f5f6f8;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        background: #f5f6f8;
+        font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+      }
+      .scene {
+        background: #f5f6f8;
+      }
+      .inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .shot {
+        position: absolute;
+        display: block;
+      }
+      #cursor {
+        position: absolute;
+        width: 30px;
+        height: 34px;
+        left: 0;
+        top: 0;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+      }
+      #hover-glow {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(37, 99, 235, 0.16);
+        box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.35) inset;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 40;
+      }
+      #ripple {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 14px;
+        height: 14px;
+        margin-left: -7px;
+        margin-top: -7px;
+        border-radius: 9999px;
+        border: 2px solid rgba(37, 99, 235, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 41;
+      }
+      .type-cover {
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: #ffffff;
+        z-index: 20;
+      }
+      .type-text {
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #111827;
+        white-space: pre;
+        z-index: 21;
+      }
+      .type-caret {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        background: #111827;
+        z-index: 22;
+      }
+      #vignette {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 15;
+        opacity: 0;
+        pointer-events: none;
+        background: radial-gradient(ellipse 900px 420px at 900px 522px, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0) 35%, rgba(15, 23, 42, 0.5) 100%);
+      }
+      #success-toast {
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 12px 18px;
+        box-shadow: 0 6px 20px rgba(16, 24, 40, 0.18), 0 0 0 1px rgba(16, 24, 40, 0.06);
+        opacity: 0;
+        z-index: 25;
+        white-space: nowrap;
+      }
+      #success-toast span {
+        font-size: 16px;
+        font-weight: 500;
+        color: #111827;
+      }
+      #title-card {
+        position: absolute;
+        left: 0;
+        top: 990px;
+        width: 100%;
+        text-align: center;
+        z-index: 60;
+        opacity: 0;
+        pointer-events: none;
+      }
+      #title-card span {
+        font-size: 22px;
+        font-weight: 500;
+        color: #4b5563;
+        letter-spacing: 0.01em;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="brag"
+      data-start="0"
+      data-duration="36"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <!--
+        Cinematic re-cut (v2) of the SecurityPal AI vendor questionnaire walkthrough.
+        Same five real screenshots as the prior cut; this build adds continuous
+        camera-follows-cursor zoom/pan choreography, a vignette row-emphasis on
+        the dashboard, and a small synthetic success toast + closing title card.
+
+        Per-scene image placement (fit each screenshot's real aspect ratio into
+        1920x1080 with no distortion, "contain", centered):
+          scene1 (2000x1193): scale 0.90528  -> 1810.6 x 1080.0  offset (54.7, 0)
+          scene2 (2000x1193): scale 0.90528  -> 1810.6 x 1080.0  offset (54.7, 0)
+          scene3 (1820x970) : scale 1.05495  -> 1920.0 x 1023.3  offset (0, 28.35)
+          scene4 (2000x1195): scale 0.903766 -> 1807.5 x 1080.0  offset (56.24, 0)
+          scene5 (2000x1195): scale 0.903766 -> 1807.5 x 1080.0  offset (56.24, 0)
+      -->
+
+      <!-- SCENE 1 — Start questionnaire — 0-4.6s -->
+      <section id="scene1" class="clip scene" data-start="0" data-duration="4.6" data-track-index="0">
+        <div class="inner" id="scene1-inner">
+          <img class="shot" id="scene1-img" src="assets/screens/scene1-invite.png" style="left:54.7px; top:0; width:1810.6px; height:1080px;" />
+        </div>
+      </section>
+
+      <!-- SCENE 2 — Check your email — 4.6-8.3s -->
+      <section id="scene2" class="clip scene" data-start="4.6" data-duration="3.7" data-track-index="0">
+        <div class="inner" id="scene2-inner" style="opacity:0;">
+          <img class="shot" id="scene2-img" src="assets/screens/scene2-check-email.png" style="left:54.7px; top:0; width:1810.6px; height:1080px;" />
+        </div>
+      </section>
+
+      <!-- SCENE 3 — SecurityPal AI dashboard — 8.3-15.0s -->
+      <section id="scene3" class="clip scene" data-start="8.3" data-duration="6.7" data-track-index="0">
+        <div class="inner" id="scene3-inner" style="opacity:0;">
+          <img class="shot" id="scene3-img" src="assets/screens/scene3-dashboard.png" style="left:0; top:28.35px; width:1920px; height:1023.3px;" />
+          <div id="vignette"></div>
+        </div>
+      </section>
+
+      <!-- SCENE 4 — VendorCorp questionnaire — 15.0-19.6s -->
+      <section id="scene4" class="clip scene" data-start="15.0" data-duration="4.6" data-track-index="0">
+        <div class="inner" id="scene4-inner" style="opacity:0;">
+          <img class="shot" id="scene4-img" src="assets/screens/scene4-detail.png" style="left:56.24px; top:0; width:1807.5px; height:1080px;" />
+        </div>
+      </section>
+
+      <!-- SCENES 5-9 — Answering through completion — 19.6-34.0s (single screenshot, continuous camera move) -->
+      <section id="scene5" class="clip scene" data-start="19.6" data-duration="16.4" data-track-index="0">
+        <div class="inner" id="scene5-inner" style="opacity:0;">
+          <img class="shot" id="scene5-img" src="assets/screens/scene5-answer.png" style="left:56.24px; top:0; width:1807.5px; height:1080px;" />
+
+          <!-- typed-response overlay -->
+          <div class="type-cover" id="resp-cover" style="left:512.6px; top:296px; width:820px; height:34px; opacity:0;"></div>
+          <span class="type-text" id="resp-text" style="left:516px; top:298px; font-size:19px; font-weight:400; opacity:0;"></span>
+          <div class="type-caret" id="resp-caret" style="left:516px; top:300px; height:22px; opacity:0;"></div>
+
+          <!-- typed-comment overlay -->
+          <div class="type-cover" id="comment-cover" style="left:1462px; top:843px; width:390px; height:30px; opacity:0;"></div>
+          <span class="type-text" id="comment-text" style="left:1466px; top:844px; font-size:16px; font-weight:400; opacity:0;"></span>
+          <div class="type-caret" id="comment-caret" style="left:1466px; top:846px; height:19px; opacity:0;"></div>
+
+          <!-- synthetic success toast (no supplied screenshot for this state) -->
+          <div id="success-toast">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="11" fill="#16a34a" />
+              <path d="m7.5 12.5 2.8 2.8 6.2-6.6" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+            </svg>
+            <span>Comment added successfully</span>
+          </div>
+        </div>
+        <!-- title card lives outside .inner so it is unaffected by the camera scale/pan -->
+        <div id="title-card"><span>Vendor Security Questionnaire — Complete</span></div>
+      </section>
+
+      <!-- SHARED OVERLAY LAYER — cursor, hover glow, click ripple (not time-clipped; driven by the one main timeline) -->
+      <div id="hover-glow"></div>
+      <div id="ripple"></div>
+      <svg id="cursor" viewBox="0 0 24 26" style="left:0;top:0;">
+        <path d="M2 1.5 L2 20.5 L7.2 16.3 L10.4 23.4 L13.2 22.1 L10.1 15.1 L16.8 14.6 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.4" stroke-linejoin="round" />
+      </svg>
+
+      <script>
+       document.fonts.ready.then(function () {
+        var tl = gsap.timeline({ paused: true });
+
+        // ---------------------------------------------------------------
+        // Coordinate helpers — convert measured ORIGINAL screenshot pixel
+        // coordinates to this canvas's pixel space, per scene's scale/offset.
+        // ---------------------------------------------------------------
+        var SC = {
+          s1: { scale: 0.90528, ox: 54.72, oy: 0 },
+          s3: { scale: 1.05495, ox: 0, oy: 28.35 },
+          s4: { scale: 0.903766, ox: 56.235, oy: 0 },
+        };
+        function toCanvas(sc, x, y) {
+          return { x: sc.ox + x * sc.scale, y: sc.oy + y * sc.scale };
+        }
+        // Approximate "zoom toward point" translate for scale(s) around the
+        // frame center (960,540) — a tuned heuristic (not exact geometry),
+        // verified visually via snapshot before render.
+        function zoomVec(tx, ty, s, k) {
+          k = k || 1.3;
+          return { x: (960 - tx) * (s - 1) * k, y: (540 - ty) * (s - 1) * k };
+        }
+
+        // Measured real-UI points (original screenshot px) -> canvas px
+        var startBtn = toCanvas(SC.s1, 991, 770);
+        var startBtnTL = toCanvas(SC.s1, 599, 741);
+        var startBtnBR = toCanvas(SC.s1, 1383, 799);
+        var emailPoint = toCanvas(SC.s1, 1000, 500);
+
+        var viewBtn = toCanvas(SC.s3, 1641, 522);
+        var viewBtnTL = toCanvas(SC.s3, 1608, 502);
+        var viewBtnBR = toCanvas(SC.s3, 1675, 542);
+        var rowCenter = toCanvas(SC.s3, 900, 522);
+
+        var q1Point = toCanvas(SC.s4, 1300, 345);
+        var q1TL = toCanvas(SC.s4, 1097, 322);
+        var q1BR = toCanvas(SC.s4, 1660, 368);
+
+        var respFieldPoint = toCanvas(SC.s4, 560, 350);
+        var respFieldTL = toCanvas(SC.s4, 509, 252);
+        var respFieldBR = toCanvas(SC.s4, 1381, 517);
+        var respCenter = toCanvas(SC.s4, 900, 380);
+        var commentLinkTL = toCanvas(SC.s4, 510, 551);
+        var commentLinkBR = toCanvas(SC.s4, 736, 569);
+        var commentLinkPoint = toCanvas(SC.s4, 620, 560);
+        var commentBoxPoint = toCanvas(SC.s4, 1570, 950);
+        var commentBoxTL = toCanvas(SC.s4, 1552, 910);
+        var commentBoxBR = toCanvas(SC.s4, 1986, 1044);
+        var commentPanelCenter = toCanvas(SC.s4, 1770, 620);
+        var commentBtnTL = toCanvas(SC.s4, 1892, 1061);
+        var commentBtnBR = toCanvas(SC.s4, 1986, 1099);
+        var commentBtnPoint = toCanvas(SC.s4, 1939, 1080);
+
+        // ---------------------------------------------------------------
+        // Reusable overlay helpers
+        // ---------------------------------------------------------------
+        function cursorTo(time, x, y, dur, ease) {
+          tl.to("#cursor", { x: x - 3, y: y - 2, opacity: 1, duration: dur, ease: ease || "power2.inOut" }, time);
+        }
+        function cursorHide(time, dur) {
+          tl.to("#cursor", { opacity: 0, duration: dur || 0.25 }, time);
+        }
+        function glowOn(time, tl_, br_, dur) {
+          var w = br_.x - tl_.x,
+            h = br_.y - tl_.y;
+          tl.set("#hover-glow", { left: tl_.x, top: tl_.y, width: w, height: h, borderRadius: Math.min(14, h / 2) }, time);
+          tl.to("#hover-glow", { opacity: 1, duration: dur || 0.18 }, time);
+        }
+        function glowOff(time, dur) {
+          tl.to("#hover-glow", { opacity: 0, duration: dur || 0.2 }, time);
+        }
+        function pressRipple(time, x, y) {
+          tl.to("#cursor", { scale: 0.88, duration: 0.09, yoyo: true, repeat: 1 }, time);
+          tl.set("#ripple", { left: x, top: y, scale: 0.3, opacity: 0.85 }, time);
+          tl.to("#ripple", { scale: 2.4, opacity: 0, duration: 0.45, ease: "power2.out" }, time);
+        }
+        function zoomTo(time, sel, s, tx, ty, dur, ease, k) {
+          var v = zoomVec(tx, ty, s, k);
+          tl.to(sel, { scale: s, x: v.x, y: v.y, duration: dur, ease: ease || "power2.inOut" }, time);
+        }
+
+        // Build-time-only DOM measurement (never inside a timeline callback).
+        function measureTextWidth(text, fontWeight, fontSizePx) {
+          var probe = document.createElement("span");
+          probe.style.position = "absolute";
+          probe.style.visibility = "hidden";
+          probe.style.whiteSpace = "pre";
+          probe.style.fontFamily = "Inter, ui-sans-serif, system-ui, sans-serif";
+          probe.style.fontWeight = fontWeight;
+          probe.style.fontSize = fontSizePx + "px";
+          probe.textContent = text;
+          document.body.appendChild(probe);
+          var w = probe.getBoundingClientRect().width;
+          document.body.removeChild(probe);
+          return w;
+        }
+
+        // Typing driver — smooth-slice reveal, deterministic blinking caret,
+        // caret x interpolated from a width measured once at build time.
+        function typeText(startTime, fullText, textSel, caretSel, coverSel, cps, caretX0, fontWeight, fontSizePx) {
+          var dur = fullText.length / cps;
+          var fullWidth = measureTextWidth(fullText, fontWeight, fontSizePx);
+          tl.to(coverSel, { opacity: 1, duration: 0.01 }, startTime);
+          tl.to(textSel, { opacity: 1, duration: 0.01 }, startTime);
+          tl.to(caretSel, { opacity: 1, duration: 0.01 }, startTime);
+          var driver = { n: 0 };
+          var textEl = document.querySelector(textSel);
+          var caretEl = document.querySelector(caretSel);
+          tl.to(
+            driver,
+            {
+              n: fullText.length,
+              duration: dur,
+              ease: "none",
+              onUpdate: function () {
+                var frac = fullText.length ? driver.n / fullText.length : 0;
+                textEl.textContent = fullText.substring(0, Math.floor(driver.n));
+                caretEl.style.left = caretX0 + fullWidth * frac + 2 + "px";
+              },
+            },
+            startTime,
+          );
+          var blink = { p: 0 };
+          tl.to(
+            blink,
+            {
+              p: Math.PI * 2 * Math.max(1, Math.round(dur / 0.5)),
+              duration: dur,
+              ease: "none",
+              onUpdate: function () {
+                caretEl.style.opacity = Math.sin(blink.p) > 0 ? "1" : "0";
+              },
+            },
+            startTime,
+          );
+          return startTime + dur;
+        }
+
+        // ===================================================================
+        // SCENE 1 — 0-4.6s — still -> cursor+camera converge on Start -> click
+        // ===================================================================
+        tl.fromTo("#scene1-inner", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0);
+        tl.set("#cursor", { x: 130, y: 940, opacity: 0 }, 0);
+        // 0.0-1.3s completely still, then cursor + camera move together
+        cursorTo(1.3, startBtn.x, startBtn.y, 1.2, "power2.inOut");
+        zoomTo(1.3, "#scene1-inner", 1.1, startBtn.x, startBtn.y, 1.3, "power1.inOut");
+        glowOn(2.45, startBtnTL, startBtnBR, 0.18);
+        pressRipple(2.9, startBtn.x, startBtn.y);
+        glowOff(3.1, 0.2);
+        cursorHide(3.2, 0.3);
+        zoomTo(3.0, "#scene1-inner", 1.22, startBtn.x, startBtn.y, 0.9, "power2.inOut");
+        tl.to("#scene1-inner", { opacity: 0, duration: 0.4 }, 4.2);
+
+        // ===================================================================
+        // SCENE 2 — 4.6-8.3s — settle -> slow zoom on "Check your email"
+        // ===================================================================
+        tl.fromTo("#scene2-inner", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1.0, duration: 0.5, ease: "power2.out" }, 4.6);
+        tl.set("#cursor", { x: 260, y: 180, opacity: 0 }, 4.6);
+        cursorTo(5.9, emailPoint.x, emailPoint.y, 1.0, "power1.inOut");
+        zoomTo(6.0, "#scene2-inner", 1.1, emailPoint.x, emailPoint.y, 1.3, "power1.inOut");
+        cursorTo(7.1, emailPoint.x + 90, emailPoint.y + 55, 0.7, "power1.inOut");
+        cursorHide(7.7, 0.3);
+        tl.to("#scene2-inner", { opacity: 0, duration: 0.4 }, 7.9);
+
+        // ===================================================================
+        // SCENE 3 — 8.3-15.0s — dashboard: vignette on VendorCorp row -> View
+        // ===================================================================
+        tl.fromTo("#scene3-inner", { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1.0, duration: 0.5, ease: "power2.out" }, 8.3);
+        tl.set("#cursor", { x: 1520, y: 130, opacity: 0, scale: 1 }, 8.3);
+        tl.to("#vignette", { opacity: 1, duration: 0.5 }, 9.0);
+        cursorTo(9.0, rowCenter.x, rowCenter.y, 1.0, "power1.inOut");
+        zoomTo(9.0, "#scene3-inner", 1.12, rowCenter.x, rowCenter.y, 1.3, "power1.inOut");
+        cursorTo(10.3, viewBtn.x, viewBtn.y, 0.8, "power2.inOut");
+        zoomTo(10.3, "#scene3-inner", 1.22, viewBtn.x, viewBtn.y, 1.0, "power2.inOut");
+        glowOn(11.1, viewBtnTL, viewBtnBR, 0.16);
+        pressRipple(11.55, viewBtn.x, viewBtn.y);
+        glowOff(11.75, 0.2);
+        tl.to("#vignette", { opacity: 0, duration: 0.5 }, 11.6);
+        cursorHide(11.9, 0.25);
+        zoomTo(12.0, "#scene3-inner", 1.32, viewBtn.x, viewBtn.y, 0.8, "power2.inOut");
+        tl.to("#scene3-inner", { opacity: 0, duration: 0.5 }, 14.5);
+
+        // ===================================================================
+        // SCENE 4 — 15.0-19.6s — questionnaire detail: zoom to Q1 -> click
+        // ===================================================================
+        tl.fromTo("#scene4-inner", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1.0, duration: 0.5, ease: "power2.out" }, 15.0);
+        tl.set("#cursor", { x: 1740, y: 190, opacity: 0 }, 15.0);
+        // brief hold so the layout reads before the camera moves
+        cursorTo(16.3, q1Point.x, q1Point.y, 1.1, "power2.inOut");
+        zoomTo(16.3, "#scene4-inner", 1.15, q1Point.x, q1Point.y, 1.3, "power1.inOut");
+        glowOn(17.4, q1TL, q1BR, 0.16);
+        pressRipple(17.85, q1Point.x, q1Point.y);
+        glowOff(18.05, 0.2);
+        cursorHide(18.15, 0.25);
+        zoomTo(18.1, "#scene4-inner", 1.22, q1Point.x, q1Point.y, 0.8, "power2.inOut");
+        tl.to("#scene4-inner", { opacity: 0, duration: 0.5 }, 19.1);
+
+        // ===================================================================
+        // SCENES 5-9 — 19.6-34.0s — answering through completion, one shot,
+        // continuous camera move (no further hard cuts).
+        // ===================================================================
+        var T0 = 19.6;
+        tl.fromTo(
+          "#scene5-inner",
+          { opacity: 0, scale: 1.2, x: zoomVec(respCenter.x, respCenter.y, 1.2).x, y: zoomVec(respCenter.x, respCenter.y, 1.2).y },
+          { opacity: 1, duration: 0.4 },
+          T0,
+        );
+        tl.set("#cursor", { x: 1760, y: 860, opacity: 0, scale: 1 }, T0);
+
+        // --- 5. Answering ---
+        cursorTo(T0 + 0.4, respFieldPoint.x, respFieldPoint.y, 0.7, "power2.inOut");
+        glowOn(T0 + 1.0, respFieldTL, respFieldBR, 0.14);
+        pressRipple(T0 + 1.15, respFieldPoint.x, respFieldPoint.y);
+        glowOff(T0 + 1.3, 0.15);
+        zoomTo(T0 + 1.3, "#scene5-inner", 1.3, respFieldPoint.x, respFieldPoint.y - 20, 1.0, "power1.inOut");
+        var respEnd = typeText(
+          T0 + 1.45,
+          "We review the Acceptable Use Policy quarterly and after any significant changes to our systems or processes.",
+          "#resp-text",
+          "#resp-caret",
+          "#resp-cover",
+          44,
+          516,
+          400,
+          19,
+        );
+        tl.to("#resp-caret", { opacity: 0, duration: 0.2 }, respEnd + 0.5);
+
+        // --- 6. Open comments (zoom out to reveal link, click, pivot pan) ---
+        zoomTo(respEnd + 0.6, "#scene5-inner", 1.12, commentLinkPoint.x, commentLinkPoint.y, 0.8, "power2.inOut");
+        cursorTo(respEnd + 0.8, commentLinkPoint.x, commentLinkPoint.y, 0.7, "power2.inOut");
+        glowOn(respEnd + 1.5, commentLinkTL, commentLinkBR, 0.14);
+        pressRipple(respEnd + 1.85, commentLinkPoint.x, commentLinkPoint.y);
+        glowOff(respEnd + 2.05, 0.2);
+        cursorHide(respEnd + 2.15, 0.25);
+        // pivot: pull all the way back to 1.0, then push into the comments panel
+        var pivotStart = respEnd + 2.3;
+        tl.to("#scene5-inner", { scale: 1.0, x: 0, y: 0, duration: 0.55, ease: "power2.inOut" }, pivotStart);
+        zoomTo(pivotStart + 0.55, "#scene5-inner", 1.2, commentPanelCenter.x, commentPanelCenter.y, 1.0, "power2.inOut");
+
+        // --- 7. Type comment ---
+        var commentStart = pivotStart + 0.55 + 1.05;
+        tl.set("#cursor", { x: commentBoxPoint.x + 220, y: commentBoxPoint.y - 180, opacity: 0 }, commentStart);
+        cursorTo(commentStart + 0.15, commentBoxPoint.x, commentBoxPoint.y, 0.65, "power2.inOut");
+        glowOn(commentStart + 0.7, commentBoxTL, commentBoxBR, 0.14);
+        pressRipple(commentStart + 0.85, commentBoxPoint.x, commentBoxPoint.y);
+        glowOff(commentStart + 1.0, 0.15);
+        zoomTo(commentStart + 1.0, "#scene5-inner", 1.28, commentBoxPoint.x, commentBoxPoint.y - 10, 0.8, "power1.inOut");
+        var cmtEnd = typeText(
+          commentStart + 1.05,
+          "This is aligned with our current security roadmap.",
+          "#comment-text",
+          "#comment-caret",
+          "#comment-cover",
+          42,
+          1466,
+          400,
+          16,
+        );
+        tl.to("#comment-caret", { opacity: 0, duration: 0.2 }, cmtEnd + 0.4);
+
+        // --- 8. Submit -> success toast ---
+        cursorTo(cmtEnd + 0.55, commentBtnPoint.x, commentBtnPoint.y, 0.65, "power2.inOut");
+        zoomTo(cmtEnd + 0.55, "#scene5-inner", 1.32, commentBtnPoint.x, commentBtnPoint.y, 0.75, "power2.inOut");
+        glowOn(cmtEnd + 1.15, commentBtnTL, commentBtnBR, 0.14);
+        pressRipple(cmtEnd + 1.4, commentBtnPoint.x, commentBtnPoint.y);
+        glowOff(cmtEnd + 1.6, 0.2);
+        cursorHide(cmtEnd + 1.7, 0.25);
+        tl.set("#success-toast", { left: commentBtnPoint.x - 250, top: commentBtnPoint.y - 55 }, cmtEnd + 1.55);
+        tl.fromTo("#success-toast", { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, cmtEnd + 1.6);
+
+        // --- 9. Final state: zoom out, settle, title card ---
+        var finalStart = cmtEnd + 2.6;
+        tl.to("#success-toast", { opacity: 0, duration: 0.3 }, finalStart);
+        tl.to("#scene5-inner", { scale: 1.0, x: 0, y: 0, duration: 1.3, ease: "power2.inOut" }, finalStart + 0.1);
+        tl.fromTo("#title-card", { opacity: 0 }, { opacity: 1, duration: 0.6 }, finalStart + 1.7);
+
+        window.__timelines["brag"] = tl;
+        tl.seek(0);
+       });
+      </script>
+    </div>
+  </body>
+</html>
