@@ -58,6 +58,23 @@
         top: 61px;
         width: 1920px;
         height: 958px;
+        z-index: 1;
+      }
+      /* Full-bleed blurred copy of the same screenshot behind it, so the
+         1920x958-in-1080 letterbox is never a flat color bar (it clashed
+         badly against dark screens like the completion modal) — it's a
+         soft continuation of the shot itself, edge to edge. */
+      .backdrop {
+        position: absolute;
+        display: block;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        object-fit: cover;
+        filter: blur(56px) saturate(1.15) brightness(0.85);
+        transform: scale(1.15);
+        z-index: 0;
       }
       /* Per-scene overlay layers (cursor / glow / ripple) live INSIDE that
          scene's .inner wrapper (see build script) so they scale and pan
@@ -145,55 +162,55 @@
         completes before that beat's cursor/click/type begins.
       -->
       <section id="sc1" class="clip scene" data-start="0.00" data-duration="3.30" data-track-index="0">
-        <div class="inner" id="sc1-inner"><img class="shot" src="assets/screens/s1.png" /></div>
+        <div class="inner" id="sc1-inner"><img class="backdrop" src="assets/screens/s1.png" /><img class="shot" src="assets/screens/s1.png" /></div>
       </section>
-      <section id="sc2" class="clip scene" data-start="3.30" data-duration="3.10" data-track-index="0">
-        <div class="inner" id="sc2-inner" style="opacity:0;"><img class="shot" src="assets/screens/s2.png" /></div>
+      <section id="sc2" class="clip scene" data-start="3.00" data-duration="3.40" data-track-index="0">
+        <div class="inner" id="sc2-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s2.png" /><img class="shot" src="assets/screens/s2.png" /></div>
       </section>
-      <section id="sc3" class="clip scene" data-start="6.40" data-duration="2.65" data-track-index="0">
-        <div class="inner" id="sc3-inner" style="opacity:0;"><img class="shot" src="assets/screens/s3.png" /></div>
+      <section id="sc3" class="clip scene" data-start="6.10" data-duration="2.95" data-track-index="0">
+        <div class="inner" id="sc3-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s3.png" /><img class="shot" src="assets/screens/s3.png" /></div>
       </section>
-      <section id="sc4" class="clip scene" data-start="9.05" data-duration="3.10" data-track-index="0">
-        <div class="inner" id="sc4-inner" style="opacity:0;"><img class="shot" src="assets/screens/s4.png" /></div>
+      <section id="sc4" class="clip scene" data-start="8.75" data-duration="3.40" data-track-index="0">
+        <div class="inner" id="sc4-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s4.png" /><img class="shot" src="assets/screens/s4.png" /></div>
       </section>
-      <section id="sc5" class="clip scene" data-start="12.15" data-duration="3.81" data-track-index="0">
-        <div class="inner" id="sc5-inner" style="opacity:0;"><img class="shot" src="assets/screens/s5.png" /></div>
+      <section id="sc5" class="clip scene" data-start="11.85" data-duration="4.11" data-track-index="0">
+        <div class="inner" id="sc5-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s5.png" /><img class="shot" src="assets/screens/s5.png" /></div>
       </section>
-      <section id="sc6" class="clip scene" data-start="15.96" data-duration="5.15" data-track-index="0">
-        <div class="inner" id="sc6-inner" style="opacity:0;"><img class="shot" src="assets/screens/s6.png" /></div>
+      <section id="sc6" class="clip scene" data-start="15.66" data-duration="5.45" data-track-index="0">
+        <div class="inner" id="sc6-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s6.png" /><img class="shot" src="assets/screens/s6.png" /></div>
       </section>
-      <section id="sc8" class="clip scene" data-start="21.11" data-duration="3.25" data-track-index="0">
-        <div class="inner" id="sc8-inner" style="opacity:0;"><img class="shot" src="assets/screens/s8.png" /></div>
+      <section id="sc8" class="clip scene" data-start="20.81" data-duration="3.55" data-track-index="0">
+        <div class="inner" id="sc8-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s8.png" /><img class="shot" src="assets/screens/s8.png" /></div>
       </section>
-      <section id="sc9" class="clip scene" data-start="24.36" data-duration="6.81" data-track-index="0">
-        <div class="inner" id="sc9-inner" style="opacity:0;"><img class="shot" src="assets/screens/s9.png" /></div>
+      <section id="sc9" class="clip scene" data-start="24.06" data-duration="7.11" data-track-index="0">
+        <div class="inner" id="sc9-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s9.png" /><img class="shot" src="assets/screens/s9.png" /></div>
       </section>
-      <section id="sc10" class="clip scene" data-start="31.17" data-duration="3.05" data-track-index="0">
-        <div class="inner" id="sc10-inner" style="opacity:0;"><img class="shot" src="assets/screens/s10.png" /></div>
+      <section id="sc10" class="clip scene" data-start="30.87" data-duration="3.35" data-track-index="0">
+        <div class="inner" id="sc10-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s10.png" /><img class="shot" src="assets/screens/s10.png" /></div>
       </section>
-      <section id="sc11" class="clip scene" data-start="34.22" data-duration="3.05" data-track-index="0">
-        <div class="inner" id="sc11-inner" style="opacity:0;"><img class="shot" src="assets/screens/s11.png" /></div>
+      <section id="sc11" class="clip scene" data-start="33.92" data-duration="3.35" data-track-index="0">
+        <div class="inner" id="sc11-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s11.png" /><img class="shot" src="assets/screens/s11.png" /></div>
       </section>
-      <section id="sc12" class="clip scene" data-start="37.27" data-duration="3.20" data-track-index="0">
-        <div class="inner" id="sc12-inner" style="opacity:0;"><img class="shot" src="assets/screens/s12.png" /></div>
+      <section id="sc12" class="clip scene" data-start="36.97" data-duration="3.50" data-track-index="0">
+        <div class="inner" id="sc12-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s12.png" /><img class="shot" src="assets/screens/s12.png" /></div>
       </section>
-      <section id="sc13" class="clip scene" data-start="40.47" data-duration="3.15" data-track-index="0">
-        <div class="inner" id="sc13-inner" style="opacity:0;"><img class="shot" src="assets/screens/s13.png" /></div>
+      <section id="sc13" class="clip scene" data-start="40.17" data-duration="3.45" data-track-index="0">
+        <div class="inner" id="sc13-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s13.png" /><img class="shot" src="assets/screens/s13.png" /></div>
       </section>
-      <section id="sc14" class="clip scene" data-start="43.62" data-duration="3.05" data-track-index="0">
-        <div class="inner" id="sc14-inner" style="opacity:0;"><img class="shot" src="assets/screens/s14.png" /></div>
+      <section id="sc14" class="clip scene" data-start="43.32" data-duration="3.35" data-track-index="0">
+        <div class="inner" id="sc14-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s14.png" /><img class="shot" src="assets/screens/s14.png" /></div>
       </section>
-      <section id="sc15" class="clip scene" data-start="46.67" data-duration="3.84" data-track-index="0">
-        <div class="inner" id="sc15-inner" style="opacity:0;"><img class="shot" src="assets/screens/s15.png" /></div>
+      <section id="sc15" class="clip scene" data-start="46.37" data-duration="4.14" data-track-index="0">
+        <div class="inner" id="sc15-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s15.png" /><img class="shot" src="assets/screens/s15.png" /></div>
       </section>
-      <section id="sc16" class="clip scene" data-start="50.51" data-duration="3.10" data-track-index="0">
-        <div class="inner" id="sc16-inner" style="opacity:0;"><img class="shot" src="assets/screens/s16.png" /></div>
+      <section id="sc16" class="clip scene" data-start="50.21" data-duration="3.40" data-track-index="0">
+        <div class="inner" id="sc16-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s16.png" /><img class="shot" src="assets/screens/s16.png" /></div>
       </section>
-      <section id="sc17" class="clip scene" data-start="53.61" data-duration="2.85" data-track-index="0">
-        <div class="inner" id="sc17-inner" style="opacity:0;"><img class="shot" src="assets/screens/s17.png" /></div>
+      <section id="sc17" class="clip scene" data-start="53.31" data-duration="3.15" data-track-index="0">
+        <div class="inner" id="sc17-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s17.png" /><img class="shot" src="assets/screens/s17.png" /></div>
       </section>
-      <section id="sc18" class="clip scene" data-start="56.46" data-duration="3.75" data-track-index="0">
-        <div class="inner" id="sc18-inner" style="opacity:0;"><img class="shot" src="assets/screens/s18.png" /></div>
+      <section id="sc18" class="clip scene" data-start="56.16" data-duration="4.05" data-track-index="0">
+        <div class="inner" id="sc18-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/s18.png" /><img class="shot" src="assets/screens/s18.png" /></div>
       </section>
 
       <script>
@@ -453,7 +470,7 @@
 
         // --- sc2: Send questionnaire modal, vendor dropdown (empty) ---
         var sc2Start = t;
-        fadeIn("sc2", t, 0.3, 1.05);
+        fadeIn("sc2", t - 0.3, 0.3, 1.05);
         t += 0.45;
         t = zoomThenClick("sc2", t, 1.2, T.vendorField);
         fadeOut("sc2", t, 0.3);
@@ -461,7 +478,7 @@
 
         // --- sc3: Vendor search dropdown open -> click first result ---
         var sc3Start = t;
-        fadeIn("sc3", t, 0.3, 1.1);
+        fadeIn("sc3", t - 0.3, 0.3, 1.1);
         tl.set("#sc3-inner", { scale: 1.2, x: (960 - T.searchBox.cx) * 0.2 * 1.3, y: (540 - T.searchBox.cy) * 0.2 * 1.3 }, t);
         t += 0.35;
         t = zoomThenClick("sc3", t, 1.2, T.firstItem, 0.5);
@@ -470,7 +487,7 @@
 
         // --- sc4: Vendor + assessment selected -> click Next ---
         var sc4Start = t;
-        fadeIn("sc4", t, 0.3, 1.1);
+        fadeIn("sc4", t - 0.3, 0.3, 1.1);
         t += 0.45;
         t = zoomThenClick("sc4", t, 1.18, T.nextBtn);
         fadeOut("sc4", t, 0.3);
@@ -478,7 +495,7 @@
 
         // --- sc5: Contacts/due date/template form, empty -> type email ---
         var sc5Start = t;
-        fadeIn("sc5", t, 0.3, 1.06);
+        fadeIn("sc5", t - 0.3, 0.3, 1.06);
         t += 0.4;
         t = zoomThenType(
           "sc5", t, 1.2, T.contactsField,
@@ -490,7 +507,7 @@
 
         // --- sc6: Form filled -> due date -> template -> Send to vendor ---
         var sc6Start = t;
-        fadeIn("sc6", t, 0.3, 1.1);
+        fadeIn("sc6", t - 0.3, 0.3, 1.1);
         t += 0.4;
         // due date: brief settle-zoom, no click (already filled)
         zoomTo("sc6", t, 1.15, T.dueDateField6, 0.8);
@@ -505,7 +522,7 @@
 
         // --- sc8: Gmail questionnaire email -> click Complete Questionnaire ---
         var sc8Start = t;
-        fadeIn("sc8", t, 0.3, 1.04);
+        fadeIn("sc8", t - 0.3, 0.3, 1.04);
         t += 0.55;
         t = zoomThenClick("sc8", t, 1.18, T.completeBtn);
         fadeOut("sc8", t, 0.35);
@@ -513,7 +530,7 @@
 
         // --- sc9: Invitation, empty -> type name -> type email ---
         var sc9Start = t;
-        fadeIn("sc9", t, 0.3, 1.05);
+        fadeIn("sc9", t - 0.3, 0.3, 1.05);
         t += 0.5;
         t = zoomThenType(
           "sc9", t, 1.2, T.fullnameField,
@@ -531,7 +548,7 @@
 
         // --- sc10: Invitation filled -> click Start questionnaire ---
         var sc10Start = t;
-        fadeIn("sc10", t, 0.3, 1.06);
+        fadeIn("sc10", t - 0.3, 0.3, 1.06);
         t += 0.35;
         t = zoomThenClick("sc10", t, 1.15, T.startBtn);
         fadeOut("sc10", t, 0.35);
@@ -539,7 +556,7 @@
 
         // --- sc11: Check your email — hold + gentle zoom ---
         var sc11Start = t;
-        fadeIn("sc11", t, 0.35, 1.05);
+        fadeIn("sc11", t - 0.3, 0.35, 1.05);
         t += 0.7;
         zoomTo("sc11", t, 1.12, T.checkEmailMsg, 1.1);
         t += 1.1 + 0.9;
@@ -548,7 +565,7 @@
 
         // --- sc12: Gmail sign-in email -> click Sign in to Vendor Portal ---
         var sc12Start = t;
-        fadeIn("sc12", t, 0.3, 1.04);
+        fadeIn("sc12", t - 0.3, 0.3, 1.04);
         t += 0.5;
         t = zoomThenClick("sc12", t, 1.18, T.signinBtn);
         fadeOut("sc12", t, 0.35);
@@ -556,7 +573,7 @@
 
         // --- sc13: Answer Q1, unanswered -> click Yes ---
         var sc13Start = t;
-        fadeIn("sc13", t, 0.3, 1.05);
+        fadeIn("sc13", t - 0.3, 0.3, 1.05);
         t += 0.5;
         t = zoomThenClick("sc13", t, 1.15, T.yesOption);
         fadeOut("sc13", t, 0.3);
@@ -564,7 +581,7 @@
 
         // --- sc14: Q1 answered -> click "Comment on this question" ---
         var sc14Start = t;
-        fadeIn("sc14", t, 0.3, 1.04);
+        fadeIn("sc14", t - 0.3, 0.3, 1.04);
         t += 0.4;
         t = zoomThenClick("sc14", t, 1.15, T.commentLink);
         fadeOut("sc14", t, 0.3);
@@ -572,7 +589,7 @@
 
         // --- sc15: Comments panel, empty -> type a comment ---
         var sc15Start = t;
-        fadeIn("sc15", t, 0.3, 1.06);
+        fadeIn("sc15", t - 0.3, 0.3, 1.06);
         t += 0.4;
         t = zoomThenType(
           "sc15", t, 1.25, T.commentBox,
@@ -584,7 +601,7 @@
 
         // --- sc16: Comment typed, button active -> click Comment ---
         var sc16Start = t;
-        fadeIn("sc16", t, 0.3, 1.1);
+        fadeIn("sc16", t - 0.3, 0.3, 1.1);
         t += 0.4;
         t = zoomThenClick("sc16", t, 1.2, T.commentBtn);
         fadeOut("sc16", t, 0.35);
@@ -592,7 +609,7 @@
 
         // --- sc17: Comment posted — hold ---
         var sc17Start = t;
-        fadeIn("sc17", t, 0.35, 1.08);
+        fadeIn("sc17", t - 0.3, 0.35, 1.08);
         t += 0.6;
         zoomTo("sc17", t, 1.12, T.postedComment, 0.9);
         t += 0.9 + 1.0;
@@ -601,7 +618,7 @@
 
         // --- sc18: Completion — zoom out to modal, click Done, settle ---
         var sc18Start = t;
-        fadeIn("sc18", t, 0.4, 1.08);
+        fadeIn("sc18", t - 0.3, 0.4, 1.08);
         t += 0.8;
         t = zoomThenClick("sc18", t, 1.15, T.doneBtn);
         t += 0.6; // final settle hold
