@@ -16,19 +16,24 @@
         width: 1920px;
         height: 1080px;
         overflow: hidden;
-        background: #000000;
+        background: #0b0d12;
       }
       #root {
         width: 100%;
         height: 100%;
         position: relative;
         overflow: hidden;
-        background: #000000;
+        background: #0b0d12;
         font-family: ui-sans-serif, system-ui, sans-serif;
       }
-      .scene {
-        background: #000000;
-      }
+      /* IMPORTANT: .scene has no background of its own. Each scene is a
+         full-frame layer stacked on top of the ones before it; if it painted
+         an opaque color here, that color would fully hide the scene beneath
+         the instant this one's clip window began — regardless of how
+         transparent its own .inner fade-in still was — which is exactly what
+         caused the harsh flash in an earlier cut (white first, then black
+         once this comment's color was retried). Leaving it transparent lets
+         the cross-dissolve genuinely blend the two real images together. */
       .inner {
         position: absolute;
         top: 0;
@@ -41,18 +46,23 @@
          padding the extra 122px with letterbox bars (flat or blurred — both
          read as "added space" that isn't the real product), the shot is
          scaled up uniformly (by 1080/958) until it fully covers the frame,
-         then cropped left/right by the overflow. No synthetic pixels are
-         added — every visible pixel is the real screenshot, just full-bleed.
-         Crop is anchored to the right edge (left: negative offset) because
-         every measured interactive target in this composition sits closer
-         to the right/center of the screenshot than the far left margin. */
+         then cropped evenly left/right by the overflow — centered, so the
+         real picture sits in the middle of the frame like the rest of the
+         edit. No synthetic pixels are added, every visible pixel is the real
+         screenshot, just full-bleed. */
       .shot {
         position: absolute;
         display: block;
-        left: -244.509px;
+        left: -122.255px;
         top: 0;
         width: 2164.509px;
         height: 1080px;
+      }
+      /* The dashboard's "Send questionnaire" button sits close enough to the
+         right edge that a centered crop would clip most of it — nudge this
+         one scene's crop right just enough to keep it in view. */
+      #sc1 .shot {
+        left: -229.962px;
       }
       /* Per-scene overlay layers (cursor / glow / ripple / type overlay)
          live INSIDE that scene's .inner wrapper so they scale and pan
@@ -295,23 +305,26 @@
           // Measured real-UI points, ORIGINAL screenshot px -> canvas px.
           // Screenshots are 1920x958, displayed via the full-bleed cover-fit
           // .shot CSS above: scaled by SCALE = 1080/958 until height fills
-          // the canvas, then the overflow width is cropped from the left
-          // (anchored to the right edge) — see .shot { left, width }.
-          // This mapping MUST match those CSS numbers exactly.
+          // the canvas, then the overflow width is cropped evenly off both
+          // sides (centered) — see .shot { left, width }. This mapping MUST
+          // match those CSS numbers exactly. sc1 crops with a different
+          // (rightward) shift to keep its button in frame — see SHIFT_SC1
+          // and the #sc1 .shot CSS override above.
           // ---------------------------------------------------------------
           var SCALE = 1080 / 958;
-          var SHIFT = 1920 * SCALE - 1920; // = 244.509, matches .shot's left/width above
-          function pt(x, y) {
-            return { x: x * SCALE - SHIFT, y: y * SCALE };
+          var SHIFT_CENTER = (1920 * SCALE - 1920) / 2; // = 122.255, matches the base .shot left above
+          var SHIFT_SC1 = 229.962; // matches #sc1 .shot left above
+          function pt(x, y, shift) {
+            return { x: x * SCALE - (shift === undefined ? SHIFT_CENTER : shift), y: y * SCALE };
           }
-          function box(x0, y0, x1, y1) {
-            var a = pt(x0, y0),
-              b = pt(x1, y1);
+          function box(x0, y0, x1, y1, shift) {
+            var a = pt(x0, y0, shift),
+              b = pt(x1, y1, shift);
             return { tl: a, br: b, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
           }
 
           var T = {
-            sendBtn: box(1760, 77, 1894, 99),
+            sendBtn: box(1760, 77, 1894, 99, SHIFT_SC1),
             contactsField: box(649, 376, 1270, 409),
             sendToVendorBtn: box(1108, 736, 1270, 771),
             completeBtn: box(850, 496, 1159, 529),
@@ -411,7 +424,7 @@
           // SCALE/SHIFT so the fake typed text stays pixel-matched to the
           // real (now full-bleed) field underneath at any zoom level.
           function typeText(scene, startTime, fullText, coverBox, x0Orig, y0Orig, fontSizeOrig, cps) {
-            var x0 = x0Orig * SCALE - SHIFT;
+            var x0 = x0Orig * SCALE - SHIFT_CENTER;
             var y0 = y0Orig * SCALE;
             var fontSize = fontSizeOrig * SCALE;
             var inner = document.getElementById(scene + "-inner");
@@ -494,11 +507,35 @@
           // A clean, symmetric cross-dissolve: the outgoing scene fades out
           // while the incoming scene fades in over the SAME window, so
           // there is never a moment where both are more transparent than
-          // they should be (the "flash" a staggered/asymmetric fade causes).
-          // Plain opacity, no scale pop — a subtle dissolve, not an effect.
-          function crossfade(outScene, inScene, time, dur) {
-            if (outScene) tl.to("#" + outScene + "-inner", { opacity: 0, duration: dur, ease: "power1.inOut" }, time);
-            if (inScene) tl.fromTo("#" + inScene + "-inner", { opacity: 0 }, { opacity: 1, duration: dur, ease: "power1.inOut" }, time);
+          // they should be (the flash an asymmetric fade, or an opaque
+          // .scene background, would cause). Three subtle variants rotate
+          // across the cut list below so consecutive transitions don't feel
+          // identical, while every one stays a plain opacity dissolve at
+          // heart — never a wipe, flash, or hard cut:
+          //  - "dissolve"   plain cross-fade, no motion.
+          //  - "drift-up"   incoming settles down 14->0px as it fades in,
+          //                 outgoing drifts up slightly as it fades out.
+          //  - "drift-down" the mirror of drift-up.
+          //  - "zoom"       incoming settles from 97.5%->100% scale as it
+          //                 fades in, outgoing eases up to 102.5%.
+          // Every variant returns the incoming scene to the exact identity
+          // transform (scale 1, x 0, y 0) by the time the dissolve
+          // finishes, so the interaction zoom that follows always starts
+          // from a clean baseline.
+          function crossfade(outScene, inScene, time, dur, style) {
+            style = style || "dissolve";
+            if (outScene) {
+              tl.to("#" + outScene + "-inner", { opacity: 0, duration: dur, ease: "power1.inOut" }, time);
+              if (style === "drift-up") tl.to("#" + outScene + "-inner", { y: -12, duration: dur, ease: "power1.inOut" }, time);
+              if (style === "drift-down") tl.to("#" + outScene + "-inner", { y: 12, duration: dur, ease: "power1.inOut" }, time);
+              if (style === "zoom") tl.to("#" + outScene + "-inner", { scale: 1.025, duration: dur, ease: "power1.inOut" }, time);
+            }
+            if (inScene) {
+              tl.fromTo("#" + inScene + "-inner", { opacity: 0 }, { opacity: 1, duration: dur, ease: "power1.inOut" }, time);
+              if (style === "drift-up") tl.fromTo("#" + inScene + "-inner", { y: 14 }, { y: 0, duration: dur, ease: "power2.out" }, time);
+              if (style === "drift-down") tl.fromTo("#" + inScene + "-inner", { y: -14 }, { y: 0, duration: dur, ease: "power2.out" }, time);
+              if (style === "zoom") tl.fromTo("#" + inScene + "-inner", { scale: 0.975 }, { scale: 1, duration: dur, ease: "power2.out" }, time);
+            }
           }
           function labelInOut(scene, inAt, outAt) {
             var id = "#" + scene + "-label";
@@ -517,7 +554,7 @@
           t = zoomThenClick("sc1", t, 1.0201, T.sendBtn, 0.55);
 
           // --- sc2a: Send questionnaire modal, empty -> type vendor email ---
-          crossfade("sc1", "sc2a", t, XFADE);
+          crossfade("sc1", "sc2a", t, XFADE, "drift-up");
           var sc2aLabelIn = t + XFADE + 0.05;
           t += XFADE + 0.3;
           t = zoomThenType("sc2a", t, 1.0644, T.contactsField, "shrisha.tuladhar@securitypalhq.com", box(660, 380, 1000, 405), 665, 383, 16, 42, 0.5);
@@ -527,12 +564,12 @@
 
           // --- sc2b: Send questionnaire modal, filled -> click "Send to vendor" ---
           // beat-locked: 6.34s (strong_beat, 1.00) — the send payoff
-          crossfade("sc2a", "sc2b", t, XFADE);
+          crossfade("sc2a", "sc2b", t, XFADE, "dissolve");
           t += XFADE - 0.13;
           t = zoomThenClick("sc2b", t, 1.0644, T.sendToVendorBtn, 0.5);
 
           // --- sc3a: Gmail invite -> click "Complete Questionnaire" ---
-          crossfade("sc2b", "sc3a", t, XFADE);
+          crossfade("sc2b", "sc3a", t, XFADE, "zoom");
           var sc3aLabelIn = t + XFADE + 0.05;
           t += XFADE + 0.4;
           t = zoomThenClick("sc3a", t, 1.0467, T.completeBtn, 0.5);
@@ -542,7 +579,7 @@
 
           // --- sc3b: Vendor invitation -> type name -> type email -> click "Start questionnaire" ---
           // beat-locked: 10.54s (strong_beat, 0.99) — the name field click lands almost exactly on the cue
-          crossfade("sc3a", "sc3b", t, XFADE);
+          crossfade("sc3a", "sc3b", t, XFADE, "drift-down");
           t += XFADE + 0.35;
           t = zoomThenType("sc3b", t, 1.0644, T.fullnameField, "Shrisha Tuladhar", box(660, 410, 1000, 432), 663, 412, 17, 40, 0.5);
           t += 0.15;
@@ -551,13 +588,13 @@
           t = zoomThenClick("sc3b", t, 1.0201, T.startBtn, 0.5);
 
           // --- sc4: Answer Q1 -> click "Yes" ---
-          crossfade("sc3b", "sc4", t, XFADE);
+          crossfade("sc3b", "sc4", t, XFADE, "dissolve");
           labelInOut("sc4", t + XFADE + 0.05, t + XFADE + 1.65);
           t += XFADE + 0.35;
           t = zoomThenClick("sc4", t, 1.0201, T.yesOption, 0.5);
 
           // --- sc5: Completion modal settles -> wordmark + chime ---
-          crossfade("sc4", "sc5", t, XFADE);
+          crossfade("sc4", "sc5", t, XFADE, "zoom");
           t += XFADE + 0.5;
           tl.fromTo("#sc5-outro", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + 0.15);
 
