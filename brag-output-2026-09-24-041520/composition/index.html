@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="vendor/gsap.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #f5f6f8;
+      }
+      #root {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        background: #f5f6f8;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      }
+      .scene {
+        background: #f5f6f8;
+      }
+      .inner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .shot {
+        position: absolute;
+        display: block;
+        left: 0px;
+        top: 61px;
+        width: 1920px;
+        height: 958px;
+        z-index: 1;
+      }
+      /* Full-bleed blurred copy of the same screenshot behind it, so the
+         1920x958-in-1080 letterbox is a soft continuation of the shot
+         itself rather than a flat color bar. */
+      .backdrop {
+        position: absolute;
+        display: block;
+        left: 0;
+        top: 0;
+        width: 1920px;
+        height: 1080px;
+        object-fit: cover;
+        filter: blur(56px) saturate(1.15) brightness(0.85);
+        transform: scale(1.15);
+        z-index: 0;
+      }
+      /* Per-scene overlay layers (cursor / glow / ripple / type overlay)
+         live INSIDE that scene's .inner wrapper so they scale and pan
+         together with the zoom and stay pixel-locked to the real UI. */
+      .cursor {
+        position: absolute;
+        width: 30px;
+        height: 34px;
+        left: 0;
+        top: 0;
+        z-index: 50;
+        opacity: 0;
+        pointer-events: none;
+        filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+      }
+      .glow {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 10px;
+        height: 10px;
+        border-radius: 10px;
+        background: rgba(11, 95, 255, 0.16);
+        box-shadow: 0 0 0 1.5px rgba(11, 95, 255, 0.35) inset;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 40;
+      }
+      .ripple {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 14px;
+        height: 14px;
+        margin-left: -7px;
+        margin-top: -7px;
+        border-radius: 9999px;
+        border: 2px solid rgba(11, 95, 255, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 41;
+      }
+      .type-cover {
+        position: absolute;
+        left: 0;
+        top: 0;
+        background: #ffffff;
+        z-index: 20;
+      }
+      .type-text {
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #111827;
+        white-space: pre;
+        z-index: 21;
+      }
+      .type-caret {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 2px;
+        background: #111827;
+        z-index: 22;
+      }
+      /* Feature-card label chip — sits at the scene level (sibling of
+         .inner) so it never zooms/pans with the screenshot. */
+      .label-chip {
+        position: absolute;
+        left: 72px;
+        top: 872px;
+        max-width: 620px;
+        background: #ffffff;
+        border-radius: 14px;
+        padding: 20px 26px;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.18);
+        z-index: 60;
+        opacity: 0;
+      }
+      .label-chip .accent {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 9999px;
+        background: #0b5fff;
+        margin-right: 10px;
+      }
+      .label-chip .title {
+        font-size: 26px;
+        font-weight: 600;
+        color: #111827;
+        letter-spacing: -0.01em;
+        display: inline-flex;
+        align-items: center;
+      }
+      .label-chip .sub {
+        font-size: 17px;
+        color: #525762;
+        margin-top: 6px;
+        margin-left: 18px;
+      }
+      .outro-card {
+        display: inline-block;
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 28px 44px;
+        box-shadow: 0 8px 24px rgba(16, 24, 40, 0.18);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="brag"
+      data-start="0"
+      data-duration="20.7"
+      data-width="1920"
+      data-height="1080"
+      data-fps="30"
+    >
+      <!--
+        Real, unaltered screenshots (1920x958, scale 1.0, letterboxed 61px
+        top/bottom -> canvasY = origY + 61, canvasX = origX). Every scene is
+        self-contained: its own .inner wrapper carries the <img> plus that
+        scene's cursor/glow/ripple/type overlays, built once at
+        document.fonts.ready time. Zoom (scale/x/y on .inner) always
+        completes before that beat's cursor/click/type begins.
+      -->
+      <section id="sc1" class="clip scene" data-start="0" data-duration="2.68" data-track-index="0">
+        <div class="inner" id="sc1-inner"><img class="backdrop" src="assets/screens/01-dashboard.png" /><img class="shot" src="assets/screens/01-dashboard.png" /></div>
+      </section>
+      <section id="sc2a" class="clip scene" data-start="2.48" data-duration="2.96" data-track-index="0">
+        <div class="inner" id="sc2a-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/02-send-empty.png" /><img class="shot" src="assets/screens/02-send-empty.png" /></div>
+        <div class="label-chip" id="sc2a-label"><div><span class="accent"></span><span class="title">Send it</span></div><div class="sub">Pick a vendor, set a due date, send.</div></div>
+      </section>
+      <section id="sc2b" class="clip scene" data-start="5.24" data-duration="1.95" data-track-index="0">
+        <div class="inner" id="sc2b-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/02-send-filled.png" /><img class="shot" src="assets/screens/02-send-filled.png" /></div>
+        <div class="label-chip" id="sc2b-label"><div><span class="accent"></span><span class="title">Send it</span></div><div class="sub">Pick a vendor, set a due date, send.</div></div>
+      </section>
+      <section id="sc3a" class="clip scene" data-start="6.99" data-duration="2.33" data-track-index="0">
+        <div class="inner" id="sc3a-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/03-gmail-invite.png" /><img class="shot" src="assets/screens/03-gmail-invite.png" /></div>
+        <div class="label-chip" id="sc3a-label"><div><span class="accent"></span><span class="title">They get it</span></div><div class="sub">One email, one link, no account needed.</div></div>
+      </section>
+      <section id="sc3b" class="clip scene" data-start="9.12" data-duration="6.59" data-track-index="0">
+        <div class="inner" id="sc3b-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/03-invite-empty.png" /><img class="shot" src="assets/screens/03-invite-empty.png" /></div>
+        <div class="label-chip" id="sc3b-label"><div><span class="accent"></span><span class="title">They get it</span></div><div class="sub">One email, one link, no account needed.</div></div>
+      </section>
+      <section id="sc4" class="clip scene" data-start="15.509" data-duration="2.28" data-track-index="0">
+        <div class="inner" id="sc4-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/04-question-unanswered.png" /><img class="shot" src="assets/screens/04-question-unanswered.png" /></div>
+        <div class="label-chip" id="sc4-label"><div><span class="accent"></span><span class="title">They answer it</span></div><div class="sub">Answer, comment, keep moving.</div></div>
+      </section>
+      <section id="sc5" class="clip scene" data-start="17.589" data-duration="2.8" data-track-index="0">
+        <div class="inner" id="sc5-inner" style="opacity:0;"><img class="backdrop" src="assets/screens/05-done.png" /><img class="shot" src="assets/screens/05-done.png" /></div>
+        <div id="sc5-outro" style="position:absolute; left:0; top:850px; width:100%; text-align:center; opacity:0;">
+          <div class="outro-card">
+            <div style="font-size:34px; font-weight:700; color:#111827; letter-spacing:-0.01em;">SecurityPal AI</div>
+            <div style="font-size:20px; color:#525762; margin-top:6px;">Questionnaires, closed out.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================ -->
+      <!-- AUDIO -->
+      <!-- ============================================================ -->
+      <audio
+        id="bgm"
+        src="assets/music/happy-beats-business-moves-vol-9-by-ende-dot-app.mp3"
+        data-start="0"
+        data-duration="20.7"
+        data-track-index="10"
+        data-automation='{"version":1,"lanes":[{"target":"volume","points":[{"t":0,"v":0},{"t":1,"v":0.3},{"t":18.3,"v":0.3},{"t":20.6,"v":0}]}]}'
+      ></audio>
+
+      <audio id="sfx-click-send-q" src="assets/sfx/interface/click_001.ogg" data-start="1.83" data-track-index="100" data-volume="0.7"></audio>
+
+      <audio id="sfx-key-contact-1" src="assets/sfx/keyboard/keypress-001.wav" data-start="4.08" data-track-index="101" data-volume="0.5"></audio>
+      <audio id="sfx-key-contact-2" src="assets/sfx/keyboard/keypress-004.wav" data-start="4.32" data-track-index="102" data-volume="0.5"></audio>
+      <audio id="sfx-key-contact-3" src="assets/sfx/keyboard/keypress-007.wav" data-start="4.58" data-track-index="103" data-volume="0.5"></audio>
+
+      <!-- beat-locked: 6.34s (strong_beat, 1.00) — the "Send to vendor" payoff -->
+      <audio id="sfx-click-send-vendor" src="assets/sfx/interface/click_002.ogg" data-start="6.34" data-track-index="104" data-volume="0.75"></audio>
+
+      <audio id="sfx-click-complete-q" src="assets/sfx/ui/mouseclick1.ogg" data-start="8.47" data-track-index="105" data-volume="0.7"></audio>
+
+      <audio id="sfx-key-name-1" src="assets/sfx/keyboard/keypress-002.wav" data-start="10.77" data-track-index="106" data-volume="0.5"></audio>
+      <audio id="sfx-key-name-2" src="assets/sfx/keyboard/keypress-005.wav" data-start="10.97" data-track-index="107" data-volume="0.5"></audio>
+
+      <audio id="sfx-key-email-1" src="assets/sfx/keyboard/keypress-003.wav" data-start="12.67" data-track-index="108" data-volume="0.5"></audio>
+      <audio id="sfx-key-email-2" src="assets/sfx/keyboard/keypress-006.wav" data-start="12.93" data-track-index="109" data-volume="0.5"></audio>
+      <audio id="sfx-key-email-3" src="assets/sfx/keyboard/keypress-008.wav" data-start="13.2" data-track-index="110" data-volume="0.5"></audio>
+
+      <audio id="sfx-click-start-q" src="assets/sfx/interface/click_003.ogg" data-start="14.859" data-track-index="111" data-volume="0.75"></audio>
+
+      <audio id="sfx-click-yes" src="assets/sfx/ui/click1.ogg" data-start="16.939" data-track-index="112" data-volume="0.75"></audio>
+
+      <audio id="sfx-chime-done" src="assets/sfx/impact/impactBell_heavy_000.ogg" data-start="19.139" data-track-index="113" data-volume="0.65"></audio>
+
+      <script>
+        document.fonts.ready.then(function () {
+          var tl = gsap.timeline({ paused: true });
+
+          // ---------------------------------------------------------------
+          // Overlay builders — cursor/glow/ripple are CHILDREN of that
+          // scene's .inner wrapper so they move with its zoom/pan and stay
+          // pixel-locked to the real UI element underneath.
+          // ---------------------------------------------------------------
+          function buildOverlays(sceneId) {
+            var inner = document.getElementById(sceneId + "-inner");
+            var svgNS = "http://www.w3.org/2000/svg";
+            var cursorSvg = document.createElementNS(svgNS, "svg");
+            cursorSvg.setAttribute("viewBox", "0 0 24 26");
+            cursorSvg.setAttribute("class", "cursor");
+            cursorSvg.id = sceneId + "-cursor";
+            var path = document.createElementNS(svgNS, "path");
+            path.setAttribute("d", "M2 1.5 L2 20.5 L7.2 16.3 L10.4 23.4 L13.2 22.1 L10.1 15.1 L16.8 14.6 Z");
+            path.setAttribute("fill", "#ffffff");
+            path.setAttribute("stroke", "#1f2937");
+            path.setAttribute("stroke-width", "1.4");
+            path.setAttribute("stroke-linejoin", "round");
+            cursorSvg.appendChild(path);
+
+            var glow = document.createElement("div");
+            glow.className = "glow";
+            glow.id = sceneId + "-glow";
+
+            var ripple = document.createElement("div");
+            ripple.className = "ripple";
+            ripple.id = sceneId + "-ripple";
+
+            inner.appendChild(glow);
+            inner.appendChild(ripple);
+            inner.appendChild(cursorSvg);
+          }
+          ["sc1", "sc2a", "sc2b", "sc3a", "sc3b", "sc4", "sc5"].forEach(buildOverlays);
+
+          // ---------------------------------------------------------------
+          // Measured real-UI points, ORIGINAL screenshot px -> canvas px
+          // (canvasX = origX, canvasY = origY + 61; screenshots are
+          // 1920x958, scale 1.0, letterboxed 61px top/bottom).
+          // ---------------------------------------------------------------
+          function pt(x, y) {
+            return { x: x, y: y + 61 };
+          }
+          function box(x0, y0, x1, y1) {
+            return { tl: pt(x0, y0), br: pt(x1, y1), cx: (x0 + x1) / 2, cy: (y0 + y1) / 2 + 61 };
+          }
+
+          var T = {
+            sendBtn: box(1760, 77, 1894, 99),
+            contactsField: box(649, 376, 1270, 409),
+            sendToVendorBtn: { tl: pt(1108, 736), br: pt(1270, 771), cx: (1108 + 1270) / 2, cy: (736 + 771) / 2 + 61 },
+            completeBtn: box(850, 496, 1159, 529),
+            fullnameField: box(648, 406, 1271, 434),
+            emailField: box(648, 490, 1271, 519),
+            startBtn: box(648, 598, 1271, 645),
+            yesOption: box(752, 205, 1454, 253),
+          };
+
+          // ---------------------------------------------------------------
+          // Reusable per-scene helpers (all selectors scoped by sceneId).
+          // Tuned tighter than a full walkthrough cut for an app-store-paced
+          // short edit: zoom completes, THEN cursor/click/type happens.
+          // ---------------------------------------------------------------
+          function cursorTo(scene, time, target, dur) {
+            tl.to("#" + scene + "-cursor", { x: target.cx - 3, y: target.cy - 2, opacity: 1, duration: dur, ease: "power2.out" }, time);
+          }
+          function cursorHide(scene, time, dur) {
+            tl.to("#" + scene + "-cursor", { opacity: 0, duration: dur }, time);
+          }
+          function glowOn(scene, time, target, dur) {
+            var w = target.br.x - target.tl.x,
+              h = target.br.y - target.tl.y;
+            tl.set("#" + scene + "-glow", { left: target.tl.x, top: target.tl.y, width: w, height: h, borderRadius: Math.min(14, h / 2) }, time);
+            tl.to("#" + scene + "-glow", { opacity: 1, duration: dur }, time);
+          }
+          function glowOff(scene, time, dur) {
+            tl.to("#" + scene + "-glow", { opacity: 0, duration: dur }, time);
+          }
+          function pressRipple(scene, time, target) {
+            tl.to("#" + scene + "-cursor", { scale: 0.88, duration: 0.09, yoyo: true, repeat: 1 }, time);
+            tl.set("#" + scene + "-ripple", { left: target.cx, top: target.cy, scale: 0.3, opacity: 0.85 }, time);
+            tl.to("#" + scene + "-ripple", { scale: 2.4, opacity: 0, duration: 0.4, ease: "power2.out" }, time);
+          }
+          function zoomTo(scene, time, targetScale, target, dur) {
+            var k = 1.3;
+            var vx = (960 - target.cx) * (targetScale - 1) * k;
+            var vy = (540 - target.cy) * (targetScale - 1) * k;
+            tl.to("#" + scene + "-inner", { scale: targetScale, x: vx, y: vy, duration: dur, ease: "power2.inOut" }, time);
+          }
+
+          // Timing constants — mirrored exactly from the plan's offline
+          // timing pass so section data-start/data-duration above line up
+          // with what this script actually produces.
+          var Z1 = 0.08,
+            CURSOR_DUR = 0.18,
+            HOVER_WAIT = 0.16,
+            PRECLICK = 0.14,
+            GLOWOFF_DELAY = 0.15,
+            GLOWOFF_DUR = 0.15,
+            POSTCLICK = 0.3,
+            HIDE_DELAY = 0.1,
+            HIDE_DUR = 0.18,
+            TAIL = 0.25;
+          var TYPE_CLICK_GAP = 0.22,
+            TYPE_HIDE_DELAY = 0.15,
+            TYPE_HIDE_DUR = 0.18,
+            TYPE_TAIL = 0.3;
+
+          // "Zoom completes, THEN the cursor appears in place and clicks."
+          // Returns the time the beat finishes.
+          function zoomThenClick(scene, t, targetScale, target, zoomDur) {
+            zoomTo(scene, t, targetScale, target, zoomDur);
+            var afterZoom = t + zoomDur + Z1;
+            cursorTo(scene, afterZoom, target, CURSOR_DUR);
+            var hoverAt = afterZoom + HOVER_WAIT;
+            glowOn(scene, hoverAt, target, 0.12);
+            var clickAt = hoverAt + PRECLICK;
+            pressRipple(scene, clickAt, target);
+            glowOff(scene, clickAt + GLOWOFF_DELAY, GLOWOFF_DUR);
+            var doneAt = clickAt + POSTCLICK;
+            cursorHide(scene, doneAt + HIDE_DELAY, HIDE_DUR);
+            return doneAt + TAIL;
+          }
+
+          function measureTextWidth(text, fontWeight, fontSizePx) {
+            var probe = document.createElement("span");
+            probe.style.position = "absolute";
+            probe.style.visibility = "hidden";
+            probe.style.whiteSpace = "pre";
+            probe.style.fontFamily = "ui-sans-serif, system-ui, sans-serif";
+            probe.style.fontWeight = fontWeight;
+            probe.style.fontSize = fontSizePx + "px";
+            probe.textContent = text;
+            document.body.appendChild(probe);
+            var w = probe.getBoundingClientRect().width;
+            document.body.removeChild(probe);
+            return w;
+          }
+          function typeText(scene, startTime, fullText, coverBox, x0, y0Orig, fontSize, cps) {
+            var y0 = y0Orig + 61;
+            var inner = document.getElementById(scene + "-inner");
+            var cover = document.createElement("div");
+            cover.className = "type-cover";
+            cover.style.left = coverBox.tl.x + "px";
+            cover.style.top = coverBox.tl.y + "px";
+            cover.style.width = coverBox.br.x - coverBox.tl.x + "px";
+            cover.style.height = coverBox.br.y - coverBox.tl.y + "px";
+            cover.style.opacity = 0;
+            var text = document.createElement("span");
+            text.className = "type-text";
+            text.style.left = x0 + "px";
+            text.style.top = y0 + "px";
+            text.style.fontSize = fontSize + "px";
+            text.style.fontWeight = 400;
+            text.style.opacity = 0;
+            var caret = document.createElement("div");
+            caret.className = "type-caret";
+            caret.style.left = x0 + "px";
+            caret.style.top = y0 + 1 + "px";
+            caret.style.height = fontSize * 1.15 + "px";
+            caret.style.opacity = 0;
+            inner.appendChild(cover);
+            inner.appendChild(text);
+            inner.appendChild(caret);
+
+            var dur = fullText.length / cps;
+            var fullWidth = measureTextWidth(fullText, 400, fontSize);
+            tl.to(cover, { opacity: 1, duration: 0.01 }, startTime);
+            tl.to(text, { opacity: 1, duration: 0.01 }, startTime);
+            tl.to(caret, { opacity: 1, duration: 0.01 }, startTime);
+            var driver = { n: 0 };
+            tl.to(
+              driver,
+              {
+                n: fullText.length,
+                duration: dur,
+                ease: "none",
+                onUpdate: function () {
+                  var frac = fullText.length ? driver.n / fullText.length : 0;
+                  text.textContent = fullText.substring(0, Math.floor(driver.n));
+                  caret.style.left = x0 + fullWidth * frac + 2 + "px";
+                },
+              },
+              startTime,
+            );
+            var blink = { p: 0 };
+            tl.to(
+              blink,
+              {
+                p: Math.PI * 2 * Math.max(1, Math.round(dur / 0.5)),
+                duration: dur,
+                ease: "none",
+                onUpdate: function () {
+                  caret.style.opacity = Math.sin(blink.p) > 0 ? "1" : "0";
+                },
+              },
+              startTime,
+            );
+            return startTime + dur;
+          }
+
+          // Zoom completes, THEN cursor appears + clicks the field, THEN types.
+          function zoomThenType(scene, t, targetScale, target, text, coverBox, x0, y0, fontSize, cps, zoomDur) {
+            zoomTo(scene, t, targetScale, target, zoomDur);
+            var afterZoom = t + zoomDur + Z1;
+            cursorTo(scene, afterZoom, target, CURSOR_DUR);
+            var hoverAt = afterZoom + HOVER_WAIT;
+            glowOn(scene, hoverAt, target, 0.12);
+            var clickAt = hoverAt + PRECLICK;
+            pressRipple(scene, clickAt, target);
+            glowOff(scene, clickAt + GLOWOFF_DELAY, GLOWOFF_DUR);
+            var typeStart = clickAt + TYPE_CLICK_GAP;
+            var typeEnd = typeText(scene, typeStart, text, coverBox, x0, y0, fontSize, cps);
+            cursorHide(scene, typeEnd + TYPE_HIDE_DELAY, TYPE_HIDE_DUR);
+            return typeEnd + TYPE_TAIL;
+          }
+
+          function fadeIn(scene, time, dur, fromScale) {
+            if (fromScale) {
+              tl.fromTo("#" + scene + "-inner", { opacity: 0, scale: fromScale }, { opacity: 1, scale: 1, duration: dur, ease: "power2.out" }, time);
+            } else {
+              tl.fromTo("#" + scene + "-inner", { opacity: 0 }, { opacity: 1, duration: dur }, time);
+            }
+          }
+          function fadeOut(scene, time, dur) {
+            tl.to("#" + scene + "-inner", { opacity: 0, duration: dur }, time);
+          }
+          function labelInOut(scene, inAt, outAt) {
+            var id = "#" + scene + "-label";
+            tl.fromTo(id, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.25, ease: "power2.out" }, inAt);
+            tl.to(id, { opacity: 0, duration: 0.2 }, outAt);
+          }
+
+          // =================================================================
+          // SCENE-BY-SCENE TIMELINE
+          // =================================================================
+          var t = 0;
+
+          // --- sc1: Dashboard hook -> click "Send questionnaire" ---
+          fadeIn("sc1", t, 0.25);
+          t += 0.9;
+          t = zoomThenClick("sc1", t, 1.15, T.sendBtn, 0.55);
+          fadeOut("sc1", t, 0.3);
+          t += 0.3;
+
+          // --- sc2a: Send questionnaire modal, empty -> type vendor email ---
+          fadeIn("sc2a", t - 0.2, 0.25, 1.05);
+          labelInOut("sc2a", t + 0.1, t + 2.6);
+          t += 0.5;
+          t = zoomThenType("sc2a", t, 1.2, T.contactsField, "shrisha.tuladhar@securitypalhq.com", box(660, 380, 1000, 405), 665, 383, 16, 42, 0.5);
+          fadeOut("sc2a", t, 0.25);
+          t += 0.25;
+
+          // --- sc2b: Send questionnaire modal, filled -> click "Send to vendor" ---
+          // beat-locked: 6.34s (strong_beat, 1.00) — the send payoff
+          fadeIn("sc2b", t - 0.2, 0.25, 1.08);
+          labelInOut("sc2b", t, t + 1.6);
+          t += 0.02;
+          t = zoomThenClick("sc2b", t, 1.2, T.sendToVendorBtn, 0.5);
+          fadeOut("sc2b", t, 0.3);
+          t += 0.3;
+
+          // --- sc3a: Gmail invite -> click "Complete Questionnaire" ---
+          fadeIn("sc3a", t - 0.2, 0.25, 1.04);
+          labelInOut("sc3a", t + 0.1, t + 1.9);
+          t += 0.4;
+          t = zoomThenClick("sc3a", t, 1.18, T.completeBtn, 0.5);
+          fadeOut("sc3a", t, 0.3);
+          t += 0.3;
+
+          // --- sc3b: Vendor invitation -> type name -> type email -> click "Start questionnaire" ---
+          // beat-locked: 10.55s (strong_beat, 0.99) — the name field click lands almost exactly on the cue
+          fadeIn("sc3b", t - 0.2, 0.25, 1.05);
+          labelInOut("sc3b", t + 0.1, t + 6.2);
+          t += 0.35;
+          t = zoomThenType("sc3b", t, 1.2, T.fullnameField, "Shrisha Tuladhar", box(660, 410, 1000, 432), 663, 412, 17, 40, 0.5);
+          t += 0.15;
+          t = zoomThenType("sc3b", t, 1.2, T.emailField, "shrisha.tuladhar@securitypalhq.com", box(660, 494, 1050, 516), 663, 496, 17, 42, 0.45);
+          t += 0.2;
+          t = zoomThenClick("sc3b", t, 1.15, T.startBtn, 0.5);
+          fadeOut("sc3b", t, 0.3);
+          t += 0.3;
+
+          // --- sc4: Answer Q1 -> click "Yes" ---
+          fadeIn("sc4", t - 0.2, 0.25, 1.05);
+          labelInOut("sc4", t + 0.1, t + 1.7);
+          t += 0.35;
+          t = zoomThenClick("sc4", t, 1.15, T.yesOption, 0.5);
+          fadeOut("sc4", t, 0.3);
+          t += 0.3;
+
+          // --- sc5: Completion modal settles -> wordmark + chime ---
+          fadeIn("sc5", t - 0.2, 0.3, 1.06);
+          t += 0.5;
+          zoomTo("sc5", t, 1.08, { cx: 960, cy: 540 }, 0.7);
+          t += 0.7;
+          tl.fromTo("#sc5-outro", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, t + 0.15);
+
+          window.__timelines["brag"] = tl;
+          tl.seek(0);
+        });
+      </script>
+    </div>
+  </body>
+</html>
