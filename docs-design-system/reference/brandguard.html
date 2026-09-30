@@ -1,0 +1,3332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrandGuard — SecurityPal AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+/* ============================================================
+   CSS VARIABLES & RESET
+   ============================================================ */
+:root {
+  --sidebar-bg: #1A1A1A;
+  --sidebar-text: #9CA3AF;
+  --sidebar-active-bg: #2A2A2A;
+  --sidebar-active-text: #FFFFFF;
+  --main-bg: #F5F5F5;
+  --card-bg: #FFFFFF;
+  --accent: #015CE6;
+  --accent-hover: #0148B5;
+  --success: #22C55E;
+  --warning: #EAB308;
+  --error: #EF4444;
+  --text-primary: #121212;
+  --text-secondary: #6B7280;
+  --border: #E5E7EB;
+  --sidebar-width: 260px;
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text-primary);
+  background: var(--main-bg);
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+.sidebar {
+  width: var(--sidebar-width);
+  min-width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid #2A2A2A;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #FFFFFF;
+}
+
+.gear-btn { display: none; }
+
+.sidebar-nav {
+  padding: 12px 10px;
+  flex: 1;
+}
+
+.nav-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #4B5563;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 8px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-section-label:hover { color: #6B7280; }
+
+.nav-section-toggle {
+  transition: transform 0.2s;
+  font-size: 10px;
+}
+
+.nav-section-toggle.collapsed { transform: rotate(-90deg); }
+
+.nav-group-items { overflow: hidden; transition: max-height 0.25s ease; }
+.nav-group-items.collapsed { max-height: 0 !important; }
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--sidebar-text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  position: relative;
+  user-select: none;
+  margin-bottom: 2px;
+}
+
+.nav-item:hover { background: #222; color: #FFFFFF; }
+
+.nav-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--accent);
+  border-radius: 0 2px 2px 0;
+}
+
+.nav-item .nav-icon { font-size: 15px; flex-shrink: 0; }
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--main-bg);
+  position: relative;
+}
+
+.page {
+  display: none;
+  padding: 32px;
+  min-height: 100%;
+  animation: fadeIn 0.2s ease;
+}
+
+.page.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+/* ============================================================
+   CARDS & COMMON COMPONENTS
+   ============================================================ */
+.card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+/* ============================================================
+   PAGE 1: UPLOAD & CHECK
+   ============================================================ */
+/* Input tabs */
+.input-tabs {
+  display: flex;
+  gap: 4px;
+  background: #F3F4F6;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.input-tab {
+  flex: 1;
+  padding: 9px 16px;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+.input-tab.active {
+  background: #fff;
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.input-tab:hover:not(.active) { color: var(--text-primary); }
+
+/* Doc link input */
+.doc-link-panel { padding: 4px 0 8px; }
+.doc-link-input {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-size: 14px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.15s;
+  background: #FAFAFA;
+}
+.doc-link-input:focus { border-color: var(--accent); background: #fff; }
+.doc-link-input::placeholder { color: #9CA3AF; }
+.doc-link-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#page-upload .upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: #FAFAFA;
+}
+
+#page-upload .upload-zone:hover,
+#page-upload .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: #EFF6FF;
+}
+
+.upload-icon { font-size: 48px; margin-bottom: 12px; }
+.upload-text { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; }
+.upload-sub { font-size: 13px; color: var(--text-secondary); }
+
+.file-info-bar {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 10px;
+}
+
+.file-info-bar.visible { display: flex; }
+
+.file-info-name { font-weight: 600; flex: 1; font-size: 14px; }
+.file-info-size { font-size: 12px; color: var(--text-secondary); }
+
+.btn-remove {
+  background: none;
+  border: none;
+  color: var(--error);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.analyze-btn {
+  width: 100%;
+  height: 52px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: background 0.15s, opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.analyze-btn:hover:not(:disabled):not(.analyzing) { background: var(--accent-hover); }
+.analyze-btn:disabled:not(.analyzing) { opacity: 0.4; cursor: not-allowed; }
+
+.analyze-btn.analyzing {
+  background: #0148B5;
+  cursor: default;
+}
+
+/* Shimmer sweep on analyzing button */
+.analyze-btn.analyzing::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: btnShimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes btnShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Spinner inside button */
+.btn-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Results */
+.results-section { display: none; }
+.results-section.visible { display: block; }
+
+/* Score Card */
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 28px;
+}
+
+.score-ring-wrapper { position: relative; flex-shrink: 0; }
+
+.score-ring-wrapper svg { transform: rotate(-90deg); }
+
+.score-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-number { font-size: 28px; font-weight: 700; color: var(--text-primary); }
+.score-denom { font-size: 14px; color: var(--text-secondary); }
+
+.score-info { flex: 1; }
+.score-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.score-pct { font-size: 36px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+.score-summary { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 16px; }
+
+.score-pills { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.score-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.score-pill.pass { background: #F0FDF4; color: #15803D; }
+.score-pill.fail { background: #FEF2F2; color: #B91C1C; }
+.score-pill.warn { background: #FEFCE8; color: #92400E; }
+.score-pill.pending { background: #EFF6FF; color: #1D4ED8; }
+.result-row.pending { background: #F0F9FF; }
+
+/* Row details panel */
+.row-details-btn {
+  font-size: 11px;
+  color: #3B82F6;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.12s;
+  white-space: nowrap;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+.result-row:hover .row-details-btn {
+  opacity: 1;
+  border-color: #BFDBFE;
+  background: #EFF6FF;
+}
+.row-detail-panel {
+  display: none;
+  padding: 10px 14px 12px 42px;
+  border-bottom: 1px solid var(--border);
+  background: #F9FAFB;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.row-detail-panel.open { display: block; }
+
+.excerpt-box {
+  background: #F9FAFB;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: monospace;
+  margin-bottom: 10px;
+  max-height: 80px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.suggestion-box {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #1E40AF;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.view-guide-link {
+  font-size: 13px;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.view-guide-link:hover { text-decoration: underline; }
+
+/* Full checklist results */
+.checklist-results-group { margin-bottom: 14px; }
+
+.checklist-results-group-header {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 14px;
+  background: #F9FAFB;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+}
+
+.checklist-results-body {
+  border: 1px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+}
+
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.result-row:last-child { border-bottom: none; }
+.result-row.fail { background: #FFF5F5; }
+.result-row.fail:hover { background: #FEE2E2; }
+.result-row.warn { background: #FFFBEB; }
+.result-row.pass { background: #FFFFFF; }
+.result-row.pass:hover { background: #F9FAFB; }
+.result-row.pending { background: #F0F9FF; }
+.result-row.pending:hover { background: #E0F2FE; }
+
+.result-status { font-size: 15px; flex-shrink: 0; }
+.result-text { flex: 1; }
+.result-pages {
+  font-size: 10px;
+  color: #9CA3AF;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+/* Actions bar */
+.actions-bar {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.btn-outline {
+  padding: 10px 20px;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-outline:hover { background: #EFF6FF; }
+
+.btn-solid {
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-solid:hover { background: var(--accent-hover); }
+
+.error-card {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 10px;
+  padding: 18px;
+  color: #991B1B;
+  font-size: 14px;
+  display: none;
+  margin-top: 12px;
+}
+
+.error-card.visible { display: block; }
+
+/* ============================================================
+   PAGE 2: BRAND CHECKLIST
+   ============================================================ */
+.checklist-progress-bar-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.checklist-progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
+
+.checklist-progress-text {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.checklist-group {
+  background: var(--card-bg);
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.checklist-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid var(--border);
+  background: #FAFAFA;
+}
+
+.checklist-group-header:hover { background: #F3F4F6; }
+
+.checklist-group-body { padding: 6px 0; }
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  transition: background 0.1s;
+}
+
+.checklist-item:hover { background: #FAFAFA; }
+
+.checklist-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.checklist-item label {
+  flex: 1;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.checklist-item input[type="checkbox"]:checked + label {
+  text-decoration: line-through;
+  color: var(--text-secondary);
+}
+
+.info-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.info-btn:hover { background: #E0E7FF; }
+
+.reset-btn {
+  background: none;
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  margin-top: 8px;
+}
+
+.reset-btn:hover { border-color: var(--error); color: var(--error); }
+
+/* ============================================================
+   PAGE 3: WHY IT MATTERS
+   ============================================================ */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.stat-number { font-size: 36px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.stat-desc { font-size: 13px; color: var(--text-primary); line-height: 1.4; margin-bottom: 8px; }
+.stat-source { font-size: 11px; color: #9CA3AF; font-style: italic; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+.is-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.is-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+
+.is-list { list-style: none; }
+
+.is-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.is-list li:last-child { border-bottom: none; }
+
+.four-pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.pillar-card {
+  background: var(--card-bg);
+  border-top: 4px solid var(--accent);
+  border-radius: 0 0 12px 12px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.pillar-icon { font-size: 24px; margin-bottom: 10px; }
+.pillar-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.pillar-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+
+.compare-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  margin-bottom: 20px;
+}
+
+.compare-row { display: grid; grid-template-columns: 1fr 1fr; }
+
+.compare-side {
+  padding: 24px;
+}
+
+.compare-side.bad { background: #FFF5F5; }
+.compare-side.good { background: #F0FDF4; }
+
+.compare-side h4 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+.compare-side.bad h4 { color: #991B1B; }
+.compare-side.good h4 { color: #15803D; }
+.compare-side p { font-size: 13px; line-height: 1.6; color: var(--text-primary); }
+
+.pull-quote {
+  background: #EFF6FF;
+  border-left: 4px solid var(--accent);
+  padding: 16px 20px;
+  border-radius: 0 8px 8px 0;
+  font-size: 15px;
+  font-style: italic;
+  color: #1E40AF;
+}
+
+/* ============================================================
+   GUIDELINE PAGES
+   ============================================================ */
+.guide-page-header { margin-bottom: 28px; }
+
+.breadcrumb {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb:hover { color: var(--accent); }
+
+.guide-title { font-size: 24px; font-weight: 700; }
+.guide-divider { height: 3px; background: linear-gradient(to right, var(--accent), #66A4F4); border-radius: 99px; margin-top: 10px; width: 80px; }
+
+.why-box {
+  background: #EFF6FF;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--accent);
+}
+
+.why-box h4 { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.why-box p { font-size: 14px; color: var(--text-primary); line-height: 1.6; }
+
+.rules-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 20px;
+}
+
+.rules-table th {
+  background: var(--text-primary);
+  color: #fff;
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.rules-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.rules-table tr:nth-child(even) td { background: #F9FAFB; }
+
+.howto-box {
+  background: var(--card-bg);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.howto-box h4 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+
+.howto-box ol {
+  padding-left: 20px;
+}
+
+.howto-box ol li {
+  font-size: 13px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.mistakes-box {
+  background: #FFFBEB;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+  border-left: 4px solid var(--warning);
+}
+
+.mistakes-box h4 { font-size: 14px; font-weight: 700; color: #92400E; margin-bottom: 12px; }
+
+.mistakes-box ul { padding-left: 18px; }
+
+.mistakes-box ul li {
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+  line-height: 1.5;
+}
+
+/* Color swatches */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.swatch-card {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.swatch-color { height: 60px; }
+.swatch-info { padding: 8px 10px; }
+.swatch-name { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+.swatch-hex { font-size: 11px; color: var(--text-secondary); font-family: monospace; }
+.swatch-use { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+.supporting-colors {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.mini-swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.1);
+  title: '';
+}
+
+/* What not to do */
+.anti-pattern {
+  background: var(--card-bg);
+  border-radius: 10px;
+  border-left: 4px solid var(--error);
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+
+.anti-pattern h4 { font-size: 14px; font-weight: 700; color: #991B1B; margin-bottom: 6px; }
+.anti-pattern p { font-size: 13px; color: var(--text-primary); line-height: 1.6; }
+
+.rule-of-thumb {
+  background: #F0FDF4;
+  border-radius: 10px;
+  padding: 18px 20px;
+  border-left: 4px solid var(--success);
+  margin-top: 20px;
+}
+
+.rule-of-thumb h4 { font-size: 14px; font-weight: 700; color: #15803D; margin-bottom: 8px; }
+.rule-of-thumb p { font-size: 14px; color: var(--text-primary); line-height: 1.6; }
+
+/* ============================================================
+   PRINT STYLES
+   ============================================================ */
+@media print {
+  .sidebar, .actions-bar, .analyze-btn, .upload-zone, .file-info-bar { display: none !important; }
+  .main { overflow: visible; }
+  .page { display: block !important; padding: 0; }
+  .app { display: block; height: auto; }
+  body { background: #fff; }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  :root { --sidebar-width: 52px; }
+
+  .sidebar-logo span, .nav-item span:not(.nav-icon), .nav-section-label span,
+  .nav-section-toggle, .sidebar-header .gear-btn { display: none; }
+
+  .sidebar-logo { justify-content: center; }
+  .sidebar-header { padding: 16px 8px; justify-content: center; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .nav-item::before { display: none; }
+  .page { padding: 16px; }
+  .stat-grid, .four-pillars { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .score-card { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============================================================
+       SIDEBAR
+       ============================================================ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span>🛡️</span>
+        <span>BrandGuard</span>
+      </div>
+      <button class="gear-btn" id="gearBtn" aria-label="Settings" title="API Key Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav" role="navigation" aria-label="Main navigation">
+      <!-- MAIN section -->
+      <div class="nav-section-label" onclick="toggleSection('main-section')">
+        <span>─── MAIN ───────────────</span>
+        <span class="nav-section-toggle" id="main-section-toggle">▾</span>
+      </div>
+      <div class="nav-group-items" id="main-section" style="max-height:999px">
+        <div class="nav-item active" data-page="upload" onclick="navigate('upload')" tabindex="0" role="button" aria-label="Upload and Check">
+          <span class="nav-icon">📄</span><span>Upload &amp; Check ✨</span>
+        </div>
+        <div class="nav-item" data-page="checklist" onclick="navigate('checklist')" tabindex="0" role="button" aria-label="Brand Checklist">
+          <span class="nav-icon">☑️</span><span>Brand Checklist</span>
+        </div>
+        <div class="nav-item" data-page="why" onclick="navigate('why')" tabindex="0" role="button" aria-label="Why It Matters">
+          <span class="nav-icon">📘</span><span>Why It Matters</span>
+        </div>
+      </div>
+
+      <!-- GUIDELINES section -->
+      <div class="nav-section-label" style="margin-top:12px" onclick="toggleSection('guide-section')">
+        <span>─── GUIDELINES ─────────</span>
+        <span class="nav-section-toggle" id="guide-section-toggle">▾</span>
+      </div>
+      <div class="nav-group-items" id="guide-section" style="max-height:999px">
+        <div class="nav-item" data-page="guide-page-setup" onclick="navigate('guide-page-setup')" tabindex="0" role="button">
+          <span class="nav-icon">📐</span><span>Page Setup</span>
+        </div>
+        <div class="nav-item" data-page="guide-typography" onclick="navigate('guide-typography')" tabindex="0" role="button">
+          <span class="nav-icon">🔤</span><span>Typography</span>
+        </div>
+        <div class="nav-item" data-page="guide-brand-colors" onclick="navigate('guide-brand-colors')" tabindex="0" role="button">
+          <span class="nav-icon">🎨</span><span>Brand Colors</span>
+        </div>
+        <div class="nav-item" data-page="guide-layout" onclick="navigate('guide-layout')" tabindex="0" role="button">
+          <span class="nav-icon">📏</span><span>Layout &amp; Spacing</span>
+        </div>
+        <div class="nav-item" data-page="guide-tables" onclick="navigate('guide-tables')" tabindex="0" role="button">
+          <span class="nav-icon">📊</span><span>Tables</span>
+        </div>
+        <div class="nav-item" data-page="guide-cover" onclick="navigate('guide-cover')" tabindex="0" role="button">
+          <span class="nav-icon">📄</span><span>Cover Page</span>
+        </div>
+        <div class="nav-item" data-page="guide-footer" onclick="navigate('guide-footer')" tabindex="0" role="button">
+          <span class="nav-icon">🔻</span><span>Footer</span>
+        </div>
+        <div class="nav-item" data-page="guide-charts" onclick="navigate('guide-charts')" tabindex="0" role="button">
+          <span class="nav-icon">📈</span><span>Charts &amp; Body Pages</span>
+        </div>
+        <div class="nav-item" data-page="guide-dont" onclick="navigate('guide-dont')" tabindex="0" role="button">
+          <span class="nav-icon">🚫</span><span>What NOT To Do</span>
+        </div>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- ============================================================
+       MAIN CONTENT
+       ============================================================ -->
+  <main class="main" id="mainContent">
+
+    <!-- ==================== PAGE 1: UPLOAD & CHECK ==================== -->
+    <div class="page active" id="page-upload">
+      <div class="page-title">Upload &amp; Check ✨</div>
+      <div class="page-subtitle">Check your document against SecurityPal brand guidelines — no account or API key needed.</div>
+
+      <div class="card">
+        <!-- Tab switcher -->
+        <div class="input-tabs">
+          <button class="input-tab active" id="tab-pdf" onclick="switchTab('pdf')">📄 Upload PDF</button>
+          <button class="input-tab" id="tab-link" onclick="switchTab('link')">🔗 Google Docs Link</button>
+        </div>
+
+        <!-- PDF panel -->
+        <div id="panel-pdf">
+          <div class="upload-zone" id="dropZone" tabindex="0" role="button" aria-label="Drop PDF here or click to browse"
+               onclick="document.getElementById('fileInput').click()"
+               ondragover="handleDragOver(event)"
+               ondragleave="handleDragLeave(event)"
+               ondrop="handleDrop(event)">
+            <div class="upload-icon">☁️</div>
+            <div class="upload-text">Drop your PDF here or click to browse</div>
+            <div class="upload-sub">Supports .pdf files up to 10MB</div>
+          </div>
+          <input type="file" id="fileInput" accept=".pdf" style="display:none" onchange="handleFileSelect(event)">
+          <div class="file-info-bar" id="fileInfoBar">
+            <span style="font-size:24px">📄</span>
+            <span class="file-info-name" id="fileName">—</span>
+            <span class="file-info-size" id="fileSize">—</span>
+            <button class="btn-remove" onclick="removeFile()" aria-label="Remove file">Remove</button>
+          </div>
+        </div>
+
+        <!-- Google Docs Link panel -->
+        <div id="panel-link" style="display:none" class="doc-link-panel">
+          <input type="url" class="doc-link-input" id="docLinkInput"
+                 placeholder="https://docs.google.com/document/d/..."
+                 oninput="onDocLinkInput()"
+                 aria-label="Google Docs URL">
+          <div class="doc-link-hint">
+            🔒 Set your doc to <strong style="margin:0 2px">Anyone with the link → Viewer</strong> before pasting.
+          </div>
+        </div>
+
+        <!-- Analyze button / status -->
+        <button class="analyze-btn" id="analyzeBtn" disabled aria-label="Analyze Document">
+          <span id="analyzeBtnIcon">✨</span>
+          <span id="analyzeBtnText">Drop a PDF to analyze</span>
+        </button>
+
+        <!-- Error -->
+        <div class="error-card" id="errorCard"></div>
+      </div>
+
+      <!-- Results -->
+      <div class="results-section" id="resultsSection">
+
+        <!-- Score Card -->
+        <div class="card score-card" id="scoreCard">
+          <div class="score-ring-wrapper">
+            <svg width="120" height="120" viewBox="0 0 120 120" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#E5E7EB" stroke-width="12"/>
+              <circle cx="60" cy="60" r="50" fill="none" stroke="#22C55E" stroke-width="12"
+                      stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round"
+                      id="scoreRingCircle" style="transition: stroke-dashoffset 1s ease, stroke 0.5s"/>
+            </svg>
+            <div class="score-ring-center">
+              <span class="score-number" id="scoreNum">0</span>
+              <span class="score-denom" id="scoreDenom">/0</span>
+            </div>
+          </div>
+          <div class="score-info">
+            <div class="score-title">Brand Compliance Score</div>
+            <div class="score-pct" id="scorePct">0%</div>
+            <div class="score-summary" id="scoreSummary">—</div>
+            <div class="score-pills">
+              <span class="score-pill pass" id="pillPass">✅ 0 Passed</span>
+              <span class="score-pill fail" id="pillFail" style="display:none">❌ 0 Failed</span>
+              <span class="score-pill pending" id="pillWarn">🔵 0 Pending Review</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full Checklist -->
+        <div id="fullChecklistResults"></div>
+
+        <!-- Actions -->
+        <div class="actions-bar">
+          <button class="btn-outline" onclick="window.print()" aria-label="Download Report">📥 Download Report</button>
+          <button class="btn-solid" onclick="resetForm()" aria-label="Analyze Another">🔄 Analyze Another</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 2: BRAND CHECKLIST ==================== -->
+    <div class="page" id="page-checklist">
+      <div class="page-title">Brand Compliance Checklist</div>
+      <div class="page-subtitle">Manually check off each item as you review your document.</div>
+
+      <div class="card" style="padding:20px 24px 12px">
+        <div class="checklist-progress-bar-track">
+          <div class="checklist-progress-bar-fill" id="clProgressFill" style="width:0%"></div>
+        </div>
+        <div class="checklist-progress-text" id="clProgressText">0 of 35 items checked</div>
+      </div>
+
+      <div id="checklistGroupsContainer"></div>
+
+      <button class="reset-btn" onclick="resetChecklist()" aria-label="Reset all checkboxes">↩ Reset All</button>
+    </div>
+
+    <!-- ==================== PAGE 3: WHY IT MATTERS ==================== -->
+    <div class="page" id="page-why">
+      <div class="page-title">Why It Matters</div>
+      <div class="page-subtitle">The data and reasoning behind professional, on-brand documents.</div>
+
+      <!-- Stats Grid -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-number">81%</div>
+          <div class="stat-desc">of consumers need to trust a brand before buying</div>
+          <div class="stat-source">— Industry Surveys</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">42%</div>
+          <div class="stat-desc">judge a company based on document design alone</div>
+          <div class="stat-source">— G2 Branding Statistics</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">23%</div>
+          <div class="stat-desc">revenue growth from consistent brand presentation</div>
+          <div class="stat-source">— Lucidpress / Demand Metric</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">50ms</div>
+          <div class="stat-desc">to form a visual opinion</div>
+          <div class="stat-source">— Google / Basel University</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">94%</div>
+          <div class="stat-desc">of first impressions are design-related</div>
+          <div class="stat-source">— Northumbria University</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">75%</div>
+          <div class="stat-desc">judge credibility based on visual design</div>
+          <div class="stat-source">— Stanford Persuasive Tech Lab</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">80%</div>
+          <div class="stat-desc">increase in brand recognition with consistent colors</div>
+          <div class="stat-source">— Reboot Study</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">84%</div>
+          <div class="stat-desc">of users prefer clean designs over cluttered</div>
+          <div class="stat-source">— UX Research Surveys</div>
+        </div>
+      </div>
+
+      <!-- Is / Is Not -->
+      <h2 class="section-title">What Makes a Document Professional?</h2>
+      <div class="two-col">
+        <div class="is-card">
+          <h3 style="color:#15803D">✅ It IS about:</h3>
+          <ul class="is-list">
+            <li><span>✅</span> Consistency across every page</li>
+            <li><span>✅</span> Clear visual hierarchy</li>
+            <li><span>✅</span> Generous, deliberate whitespace</li>
+            <li><span>✅</span> Effortless readability</li>
+            <li><span>✅</span> Intentional use of color</li>
+          </ul>
+        </div>
+        <div class="is-card">
+          <h3 style="color:#991B1B">❌ It is NOT about:</h3>
+          <ul class="is-list">
+            <li><span>❌</span> More content per page (cramming = chaos)</li>
+            <li><span>❌</span> Decorative borders and effects (noise)</li>
+            <li><span>❌</span> Multiple fonts or colors (inconsistency)</li>
+            <li><span>❌</span> Justified text (looks neat, reads poorly)</li>
+            <li><span>❌</span> Filling every inch of space (suffocating)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Four Pillars -->
+      <h2 class="section-title">The Four Pillars</h2>
+      <div class="four-pillars">
+        <div class="pillar-card">
+          <div class="pillar-icon">🌬️</div>
+          <div class="pillar-title">Whitespace</div>
+          <div class="pillar-desc">Breathing room that reduces cognitive load and guides the eye to what matters.</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">📖</div>
+          <div class="pillar-title">Readability</div>
+          <div class="pillar-desc">Optimal line length, alignment, and type scale for effortless reading.</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">📐</div>
+          <div class="pillar-title">Hierarchy</div>
+          <div class="pillar-desc">Structure visible at a glance — headings, subheadings, body working together.</div>
+        </div>
+        <div class="pillar-card">
+          <div class="pillar-icon">🎨</div>
+          <div class="pillar-title">Brand Colors</div>
+          <div class="pillar-desc">Consistent palette that builds recognition and trust across every touchpoint.</div>
+        </div>
+      </div>
+
+      <!-- Compare -->
+      <h2 class="section-title">Cramped vs. Spacious</h2>
+      <div class="compare-card">
+        <div class="compare-row">
+          <div class="compare-side bad">
+            <h4>Cramped → Overwhelm</h4>
+            <p>Dense pages increase cognitive load. Readers skip, skim, or abandon. More content per page does <em>not</em> mean more professional — it signals "this was thrown together."</p>
+          </div>
+          <div class="compare-side good">
+            <h4>Spacious → Confidence</h4>
+            <p>Well-spaced layouts signal control. The content breathes, so does the reader. Premium brands use whitespace as a trust signal — think Apple, not Craigslist.</p>
+          </div>
+        </div>
+      </div>
+      <div class="pull-quote">"An 18-page report with good spacing is more professional than a 15-page report crammed together."</div>
+    </div>
+
+    <!-- ==================== GUIDE: PAGE SETUP ==================== -->
+    <div class="page" id="page-guide-page-setup">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')" aria-label="Back to checklist">← Back to Checklist</div>
+        <div class="guide-title">📐 Page Setup</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>The foundation of every document. Wrong page size or margins immediately make a report look unprofessional or out of place when printed or shared.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <table class="rules-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Format</td><td>A4 Portrait (8.27" × 11.69")</td></tr>
+          <tr><td>Margins</td><td>0.8 inches — all four sides (uniform)</td></tr>
+          <tr><td>Orientation</td><td>Portrait</td></tr>
+          <tr><td>Background Color</td><td>White (#FFFFFF)</td></tr>
+        </table>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It (Google Docs)</h4>
+        <ol>
+          <li>Go to <strong>File → Page Setup</strong></li>
+          <li>Set <strong>Paper Size</strong> to A4 (8.27" × 11.69")</li>
+          <li>Set all four margins to <strong>0.8 inches</strong></li>
+          <li>Set Orientation to <strong>Portrait</strong></li>
+          <li>Set Page Color to <strong>White</strong></li>
+          <li>Click <strong>"Set as default"</strong> so all future docs use these settings</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>Using Letter size instead of A4</li>
+          <li>Uneven margins (e.g., 1" top but 0.75" sides)</li>
+          <li>Landscape orientation for text-heavy reports</li>
+          <li>Colored or off-white backgrounds</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: TYPOGRAPHY ==================== -->
+    <div class="page" id="page-guide-typography">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">🔤 Typography</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>Typography creates the visual hierarchy that lets readers navigate a 20-page report without a table of contents. Size, weight, and color do the work. Without hierarchy, everything is a wall of text.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <p style="font-size:13px;margin-bottom:12px;color:#374151"><strong>Font: Geist</strong> — Used for all text across the document.</p>
+        <table class="rules-table">
+          <tr><th>Category</th><th>Size</th><th>Usage</th><th>Color</th></tr>
+          <tr><td>Title</td><td>34px</td><td>Cover page heading</td><td>White</td></tr>
+          <tr><td>Subtitle</td><td>18px</td><td>Cover page supporting text</td><td>White</td></tr>
+          <tr><td>Heading 1</td><td>18px</td><td>Section headings</td><td>Brand Blue #015CE6</td></tr>
+          <tr><td>Heading 2</td><td>14px</td><td>Sub-heading to H1</td><td>Grey #828282</td></tr>
+          <tr><td>Heading 4</td><td>11px, Semi-Bold</td><td>Sub-heading to H2</td><td>Black #121212</td></tr>
+          <tr><td>Normal Text</td><td>11px</td><td>Body text</td><td>Black #121212</td></tr>
+          <tr><td>Heading 5</td><td>8px</td><td>Footer text</td><td>Grey / Brand Blue</td></tr>
+          <tr><td>Heading 6</td><td>11px</td><td>Figures, chart names</td><td>Black #121212</td></tr>
+        </table>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Install/add <strong>Geist</strong> font to your system or Google Docs</li>
+          <li>Set up your document styles: <strong>Format → Paragraph Styles → Update</strong> each heading level to match the table above</li>
+          <li>Always use the defined heading styles rather than manually changing font size</li>
+          <li>Never use font sizes outside this scale — if something doesn't fit, it belongs in an existing level</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>Using multiple font families in one document</li>
+          <li>Making text bigger/bolder instead of using the correct heading level</li>
+          <li>Using font sizes not in the scale (e.g., 16px, 20px, 24px)</li>
+          <li>Forgetting to set heading colors (leaving them all black)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: BRAND COLORS ==================== -->
+    <div class="page" id="page-guide-brand-colors">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">🎨 Brand Colors</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>80% increase in brand recognition comes from consistent color. Less than 10% of B2B companies have truly consistent branding. Color is the fastest way to build visual trust.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Palette</h4>
+        <div class="swatch-grid">
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#015CE6"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Brand Blue</div>
+              <div class="swatch-hex">#015CE6</div>
+              <div class="swatch-use">Headings, charts</div>
+            </div>
+          </div>
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#121212"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Black</div>
+              <div class="swatch-hex">#121212</div>
+              <div class="swatch-use">Headers, body text</div>
+            </div>
+          </div>
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#828282"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Grey</div>
+              <div class="swatch-hex">#828282</div>
+              <div class="swatch-use">Subtitles, footer</div>
+            </div>
+          </div>
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#E8F1FF;border:1px solid #ddd"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Light Blue</div>
+              <div class="swatch-hex">#E8F1FF</div>
+              <div class="swatch-use">Table backgrounds</div>
+            </div>
+          </div>
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#F0F4F9;border:1px solid #ddd"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Light Grey</div>
+              <div class="swatch-hex">#F0F4F9</div>
+              <div class="swatch-use">Alt table backgrounds</div>
+            </div>
+          </div>
+          <div class="swatch-card">
+            <div class="swatch-color" style="background:#FFFFFF;border:1px solid #ddd"></div>
+            <div class="swatch-info">
+              <div class="swatch-name">Pure White</div>
+              <div class="swatch-hex">#FFFFFF</div>
+              <div class="swatch-use">Backgrounds, text on dark</div>
+            </div>
+          </div>
+        </div>
+        <h4 style="font-size:14px;font-weight:700;margin-bottom:10px">Supporting Colors (Charts/Body Pages only)</h4>
+        <p style="font-size:12px;color:#6B7280;margin-bottom:10px">Only for charts and Canva-created body pages — NOT for text or general use.</p>
+        <div class="supporting-colors">
+          <div class="mini-swatch" style="background:#1A6EEA" title="#1A6EEA"></div>
+          <div class="mini-swatch" style="background:#3380ED" title="#3380ED"></div>
+          <div class="mini-swatch" style="background:#4C92F1" title="#4C92F1"></div>
+          <div class="mini-swatch" style="background:#66A4F4" title="#66A4F4"></div>
+          <div class="mini-swatch" style="background:#80B6F7" title="#80B6F7"></div>
+          <div class="mini-swatch" style="background:#99C8FB" title="#99C8FB"></div>
+          <div class="mini-swatch" style="background:#B3DAFE" title="#B3DAFE"></div>
+          <div class="mini-swatch" style="background:#CCE6FF" title="#CCE6FF"></div>
+          <div class="mini-swatch" style="background:#E6F3FF" title="#E6F3FF"></div>
+        </div>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Save these hex codes for quick reference</li>
+          <li>For headings: always use <strong>#015CE6</strong> for H1, <strong>#828282</strong> for H2</li>
+          <li>For tables: header bg is <strong>#015CE6</strong> or <strong>#121212</strong>, body bg is <strong>#E8F1FF</strong> or <strong>#F0F4F9</strong></li>
+          <li>For body text: always <strong>#121212</strong></li>
+          <li>Never introduce colors not in this palette</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>Using a "close enough" blue instead of exact #015CE6</li>
+          <li>Using black (#000000) instead of the brand black (#121212)</li>
+          <li>Adding random accent colors for emphasis</li>
+          <li>Using brand blue for body text (it's for headings only)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: LAYOUT & SPACING ==================== -->
+    <div class="page" id="page-guide-layout">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">📏 Layout &amp; Spacing</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>84% of users prefer clean, simple designs. Whitespace is not empty — it reduces cognitive load, creates hierarchy, and signals confidence. An 18-page report with good spacing is more professional than a 15-page report crammed together.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <ul style="padding-left:18px;font-size:14px;line-height:2">
+          <li><strong>Two-column layout:</strong> Left column (~30%) for navigation/labels, Right column (~70%) for content</li>
+          <li><strong>Optimal line length:</strong> 50–75 characters per line — the two-column layout automatically enforces this</li>
+          <li><strong>Text alignment:</strong> Left-aligned. ALWAYS. Never justified.</li>
+          <li><strong>Whitespace:</strong> Let pages breathe. Don't fill every inch.</li>
+        </ul>
+        <div style="margin-top:16px;padding:14px;background:#EFF6FF;border-radius:8px">
+          <strong style="font-size:13px">Why Left-Aligned Over Justified:</strong>
+          <ul style="padding-left:18px;margin-top:8px;font-size:13px;line-height:1.8">
+            <li>Left-aligned text leads to better task performance in visual search</li>
+            <li>Justified text creates irregular word spacing that increases reading time</li>
+            <li>WCAG 1.4.8 accessibility guidelines recommend avoiding justified text</li>
+          </ul>
+        </div>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Set up a two-column table (borderless): left column 30%, right column 70%</li>
+          <li>Set text alignment to <strong>Left</strong> (Format → Align → Left)</li>
+          <li>Never use Justify alignment — even if it "looks neater"</li>
+          <li>Add paragraph spacing between sections (use space-after, not empty lines)</li>
+          <li>If a page feels cramped, move content to the next page — don't shrink fonts or reduce spacing</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>Using full-width single-column text (line length too long)</li>
+          <li>Justified text alignment</li>
+          <li>Cramming content to avoid adding pages</li>
+          <li>Zero spacing between sections</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: TABLES ==================== -->
+    <div class="page" id="page-guide-tables">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">📊 Tables</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>Tables present data. Poorly formatted tables make data unreadable and make the document look amateur. Consistent table styling across a report builds a professional rhythm.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <table class="rules-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Font Size</td><td>10px</td></tr>
+          <tr><td>Line Spacing</td><td>Single</td></tr>
+          <tr><td>Paragraph Spacing</td><td>None</td></tr>
+          <tr><td>Header Text Color</td><td>White</td></tr>
+          <tr><td>Header Bg (Option A)</td><td>Brand Blue #015CE6</td></tr>
+          <tr><td>Header Bg (Option B)</td><td>Black #121212</td></tr>
+          <tr><td>Body Text Color</td><td>Black #121212</td></tr>
+          <tr><td>Body Bg (Option A)</td><td>Light Blue #E8F1FF</td></tr>
+          <tr><td>Body Bg (Option B)</td><td>Light Grey #F0F4F9</td></tr>
+          <tr><td>Border Weight</td><td>3pt</td></tr>
+          <tr><td>Border Color</td><td>White (acts as cell separator)</td></tr>
+          <tr><td>Cell Padding</td><td>0.1 inches</td></tr>
+          <tr><td>Style</td><td>Inline, Left-aligned</td></tr>
+          <tr><td>Body Cell Alignment</td><td>Top</td></tr>
+          <tr><td>Header Cell Alignment</td><td>Middle</td></tr>
+        </table>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Insert table → set font to Geist, size 10px</li>
+          <li>Select header row → background <strong>#015CE6</strong> (or #121212), text color White, alignment Middle</li>
+          <li>Select body rows → background <strong>#E8F1FF</strong> (or #F0F4F9), text color #121212, alignment Top</li>
+          <li>Set all borders to 3pt, color White</li>
+          <li>Set cell padding to 0.1 inches (Table Properties → Cell → Cell padding)</li>
+          <li>Align the table to the left</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>Default Google Docs/Word table styling (thin black borders, no background colors)</li>
+          <li>Inconsistent header colors across tables in the same document</li>
+          <li>Body text not aligned to top of cell</li>
+          <li>Missing cell padding (text touching cell borders)</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: COVER PAGE ==================== -->
+    <div class="page" id="page-guide-cover">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">📄 Cover Page</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>50ms — that's how long readers take to form a visual opinion. 94% of first impressions are design-related. 75% judge credibility based on visual design. The cover page decides the entire perception of your report.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <ul style="padding-left:18px;font-size:14px;line-height:2">
+          <li>Distinct cover page with <strong>Brand Blue gradient/background</strong></li>
+          <li>Title: Large, white, prominent text (<strong>34px, White</strong>)</li>
+          <li>Subtitle: Supporting text (<strong>18px, White</strong>)</li>
+          <li><strong>SecurityPal AI branding/logo present</strong></li>
+          <li>Cover page footer is <strong>different</strong> from body page footer</li>
+        </ul>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Use the approved cover page template (created in Canva)</li>
+          <li>Or create manually: Set page background to Brand Blue (<strong>#015CE6</strong>)</li>
+          <li>Add title in 34px White, Geist font</li>
+          <li>Add subtitle in 18px White, Geist font</li>
+          <li>Place SecurityPal AI logo in the top-left area</li>
+          <li>Don't add body content to the cover page — it's for branding only</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>No cover page (jumping straight into content)</li>
+          <li>White/plain cover page with just a title</li>
+          <li>Using off-brand colors or gradients</li>
+          <li>Too much text on the cover page</li>
+          <li>Missing company branding</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: FOOTER ==================== -->
+    <div class="page" id="page-guide-footer">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">🔻 Footer</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>The footer provides consistency and navigation across every page. It anchors the document and reinforces branding on every page the reader sees.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <ul style="padding-left:18px;font-size:14px;line-height:2">
+          <li>Footer text uses <strong>Heading 5 style: 8px, Grey/Brand Blue</strong></li>
+          <li>Same footer appears on <strong>every body page</strong></li>
+          <li>Cover page has a <strong>different, pre-designed footer</strong></li>
+          <li>Footer is editable via <strong>double-click</strong> in Google Docs</li>
+        </ul>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Double-click the footer area to enter editing mode</li>
+          <li>Set the font to Geist, <strong>8px</strong></li>
+          <li>Set the color to Grey (<strong>#828282</strong>) or Brand Blue (<strong>#015CE6</strong>)</li>
+          <li>Add standard footer content (company name, document title, page number, confidentiality notice)</li>
+          <li>The cover page footer should be set separately and should be different from body pages</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>No footer at all</li>
+          <li>Footer text too large (using normal body text size)</li>
+          <li>Different footers on different body pages (inconsistency)</li>
+          <li>Same footer on cover page as body pages</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: CHARTS & BODY ==================== -->
+    <div class="page" id="page-guide-charts">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">📈 Charts &amp; Body Pages</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>Charts and visual body pages (created in Canva) are the visual highlights of your report. They need to match the brand aesthetic to maintain trust and recognition.</p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:15px;font-weight:700;margin-bottom:14px">The Rules</h4>
+        <table class="rules-table">
+          <tr><th>Property</th><th>Value</th></tr>
+          <tr><td>Creation Tool</td><td>Canva</td></tr>
+          <tr><td>Primary Color</td><td>Brand Blue #015CE6</td></tr>
+          <tr><td>Supporting Colors</td><td>Shades of blue only (see palette below)</td></tr>
+          <tr><td>Style</td><td>Clean, professional presentation</td></tr>
+          <tr><td>Chart Labels</td><td>Placed at the bottom of the chart</td></tr>
+        </table>
+        <div style="margin-top:14px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px">Approved Blue Shades:</div>
+          <div class="supporting-colors">
+            <div class="mini-swatch" style="background:#015CE6" title="#015CE6"></div>
+            <div class="mini-swatch" style="background:#1A6EEA" title="#1A6EEA"></div>
+            <div class="mini-swatch" style="background:#3380ED" title="#3380ED"></div>
+            <div class="mini-swatch" style="background:#4C92F1" title="#4C92F1"></div>
+            <div class="mini-swatch" style="background:#66A4F4" title="#66A4F4"></div>
+            <div class="mini-swatch" style="background:#80B6F7" title="#80B6F7"></div>
+            <div class="mini-swatch" style="background:#99C8FB" title="#99C8FB"></div>
+            <div class="mini-swatch" style="background:#B3DAFE" title="#B3DAFE"></div>
+            <div class="mini-swatch" style="background:#CCE6FF" title="#CCE6FF"></div>
+            <div class="mini-swatch" style="background:#E6F3FF" title="#E6F3FF"></div>
+          </div>
+        </div>
+      </div>
+      <div class="howto-box">
+        <h4>📋 How To Do It</h4>
+        <ol>
+          <li>Open Canva and use the SecurityPal AI template (if available)</li>
+          <li>Set your primary chart color to <strong>#015CE6</strong></li>
+          <li>Use only the approved shades of blue for secondary data series</li>
+          <li>Place chart titles/names <strong>below</strong> the chart, not above</li>
+          <li>Export as high-resolution image and insert into the document</li>
+          <li>Ensure the chart doesn't stretch or distort when inserted</li>
+        </ol>
+      </div>
+      <div class="mistakes-box">
+        <h4>⚠️ Common Mistakes</h4>
+        <ul>
+          <li>Using default Excel/Sheets chart colors (rainbow palette)</li>
+          <li>Chart names above instead of below</li>
+          <li>Using non-blue colors for data series</li>
+          <li>Low-resolution chart exports</li>
+          <li>Charts that are too small or too large for the page</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ==================== GUIDE: WHAT NOT TO DO ==================== -->
+    <div class="page" id="page-guide-dont">
+      <div class="guide-page-header">
+        <div class="breadcrumb" onclick="navigate('checklist')">← Back to Checklist</div>
+        <div class="guide-title">🚫 What NOT To Do</div>
+        <div class="guide-divider"></div>
+      </div>
+      <div class="why-box">
+        <h4>Why This Matters</h4>
+        <p>Knowing what to avoid is as important as knowing what to do. These are the most common mistakes that make documents look unprofessional.</p>
+      </div>
+
+      <div class="anti-pattern">
+        <h4>🚫 Cramming Content Per Page</h4>
+        <p>More content per page does NOT mean more professional. Cramming increases cognitive load. Readers skip, skim, or abandon. Dense pages signal "this was thrown together."</p>
+      </div>
+      <div class="anti-pattern">
+        <h4>🚫 Decorative Borders and Effects</h4>
+        <p>Drop shadows, decorative borders, gradient fills on text boxes — these are noise, not design. Professional documents are intentional, not decorated.</p>
+      </div>
+      <div class="anti-pattern">
+        <h4>🚫 Multiple Fonts or Too Many Colors</h4>
+        <p>Stick to Geist. Stick to the 6-color palette. Every additional font or color weakens consistency and makes the document look chaotic.</p>
+      </div>
+      <div class="anti-pattern">
+        <h4>🚫 Justified Text</h4>
+        <p>It looks neat at first glance, but justified text creates uneven word spacing. This increases reading time and reduces comprehension. Left-aligned text is faster to read, more accessible, and recommended by WCAG.</p>
+      </div>
+      <div class="anti-pattern">
+        <h4>🚫 Filling Every Inch of Space</h4>
+        <p>Whitespace is not wasted space. It is working space. It reduces cognitive load, creates hierarchy, and signals confidence. Think Apple, not Craigslist.</p>
+      </div>
+      <div class="rule-of-thumb">
+        <h4>✅ The Rule of Thumb</h4>
+        <p>If you're unsure whether to add more content to a page or start a new page — <strong>start a new page.</strong> Let it breathe.</p>
+      </div>
+    </div>
+
+  </main><!-- /main -->
+</div><!-- /app -->
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ──────────────────────────────────────────────────────────────
+// PDF.js Setup
+// ──────────────────────────────────────────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ──────────────────────────────────────────────────────────────
+// State
+// ──────────────────────────────────────────────────────────────
+let uploadedFile = null;
+let analysisResult = null;
+const checklistState = {};
+
+// ──────────────────────────────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────────────────────────────
+window.navigate = function(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const targetPage = document.getElementById('page-' + pageId);
+  if (targetPage) targetPage.classList.add('active');
+
+  const targetNav = document.querySelector(`[data-page="${pageId}"]`);
+  if (targetNav) targetNav.classList.add('active');
+
+  document.getElementById('mainContent').scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+window.toggleSection = function(sectionId) {
+  const section = document.getElementById(sectionId);
+  const toggle = document.getElementById(sectionId + '-toggle');
+  if (!section) return;
+  section.classList.toggle('collapsed');
+  if (toggle) toggle.classList.toggle('collapsed');
+};
+
+// Keyboard nav
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      item.click();
+    }
+  });
+});
+
+// ──────────────────────────────────────────────────────────────
+// TAB SWITCHING
+// ──────────────────────────────────────────────────────────────
+let activeTab = 'pdf';
+
+window.switchTab = function(tab) {
+  activeTab = tab;
+  document.getElementById('tab-pdf').classList.toggle('active', tab === 'pdf');
+  document.getElementById('tab-link').classList.toggle('active', tab === 'link');
+  document.getElementById('panel-pdf').style.display = tab === 'pdf' ? '' : 'none';
+  document.getElementById('panel-link').style.display = tab === 'link' ? '' : 'none';
+  clearError();
+  hideResults();
+  if (tab === 'pdf') {
+    resetBtnState();
+    document.getElementById('analyzeBtnText').textContent = 'Drop a PDF to analyze';
+    if (uploadedFile) { document.getElementById('analyzeBtn').disabled = false; document.getElementById('analyzeBtnText').textContent = 'Analyze Document'; }
+  } else {
+    const val = document.getElementById('docLinkInput').value.trim();
+    document.getElementById('analyzeBtn').disabled = !val;
+    document.getElementById('analyzeBtnText').textContent = val ? 'Analyze Document' : 'Paste a Google Docs link';
+    const iconEl = document.getElementById('analyzeBtnIcon');
+    if (iconEl && iconEl.classList.contains('btn-spinner')) iconEl.outerHTML = '<span id="analyzeBtnIcon">✨</span>';
+    document.getElementById('analyzeBtn').classList.remove('analyzing');
+  }
+};
+
+window.onDocLinkInput = function() {
+  const val = document.getElementById('docLinkInput').value.trim();
+  document.getElementById('analyzeBtn').disabled = !val;
+  document.getElementById('analyzeBtnText').textContent = val ? 'Analyze Document' : 'Paste a Google Docs link';
+};
+
+document.getElementById('docLinkInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); analyzeDocument(); }
+});
+
+// ──────────────────────────────────────────────────────────────
+// FILE UPLOAD
+// ──────────────────────────────────────────────────────────────
+window.handleDragOver = function(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.add('drag-over');
+};
+
+window.handleDragLeave = function(e) {
+  document.getElementById('dropZone').classList.remove('drag-over');
+};
+
+window.handleDrop = function(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) setFile(file);
+};
+
+window.handleFileSelect = function(e) {
+  const file = e.target.files[0];
+  if (file) setFile(file);
+};
+
+function setFile(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    showError('Please upload a PDF file.'); return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showError('File exceeds 10MB. Please upload a smaller PDF.'); return;
+  }
+  clearError();
+  uploadedFile = file;
+  document.getElementById('dropZone').style.display = 'none';
+  const bar = document.getElementById('fileInfoBar');
+  bar.classList.add('visible');
+  document.getElementById('fileName').textContent = file.name;
+  document.getElementById('fileSize').textContent = formatBytes(file.size);
+  // Auto-start analysis immediately
+  analyzeDocument();
+}
+
+window.removeFile = function() {
+  uploadedFile = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('dropZone').style.display = '';
+  document.getElementById('fileInfoBar').classList.remove('visible');
+  resetBtnState();
+  hideResults();
+  clearError();
+};
+
+function formatBytes(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+}
+
+function setBtnAnalyzing(statusText) {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.classList.add('analyzing');
+  document.getElementById('analyzeBtnIcon').outerHTML = '<span class="btn-spinner" id="analyzeBtnIcon"></span>';
+  document.getElementById('analyzeBtnText').textContent = statusText;
+}
+
+function setBtnStatus(text) {
+  const textEl = document.getElementById('analyzeBtnText');
+  if (textEl) textEl.textContent = text;
+}
+
+function resetBtnState() {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.classList.remove('analyzing');
+  const iconEl = document.getElementById('analyzeBtnIcon');
+  if (iconEl && iconEl.classList.contains('btn-spinner')) {
+    iconEl.outerHTML = '<span id="analyzeBtnIcon">✨</span>';
+  }
+  document.getElementById('analyzeBtnText').textContent = 'Drop a PDF to analyze';
+}
+
+// ──────────────────────────────────────────────────────────────
+// PDF EXTRACTION (per-page with font & size metadata)
+// ──────────────────────────────────────────────────────────────
+async function extractPdfData(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const numPages = pdf.numPages;
+  const pages = [];
+
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 1 });
+    const content = await page.getTextContent();
+    const items = content.items;
+
+    const pageW = viewport.width;
+    const pageH = viewport.height;
+
+    const text = items.map(it => it.str).join(' ').trim();
+    const fontNames = new Set();
+    const fontSizes = [];
+    const xPositions = [];
+
+    items.forEach(item => {
+      if (item.fontName) fontNames.add(item.fontName);
+      if (item.transform) {
+        const sz = Math.round(Math.abs(item.transform[3]));
+        if (sz > 0 && sz < 300) fontSizes.push(sz);
+        if (item.str.trim().length > 1) xPositions.push(item.transform[4]);
+      }
+    });
+
+    // Footer: items in bottom 12% of page height (y < pageH * 0.12)
+    const withY = items.filter(it => it.str.trim());
+    withY.sort((a, b) => a.transform[5] - b.transform[5]);
+    const footerItems = withY.filter(it => it.transform[5] < pageH * 0.12);
+    const footerText = footerItems.map(it => it.str).join(' ').trim();
+    const footerFontSizes = footerItems
+      .map(it => it.transform ? Math.round(Math.abs(it.transform[3])) : 0)
+      .filter(s => s > 0 && s < 50);
+
+    // Render page to canvas for pixel-level visual analysis
+    const renderCanvas = document.createElement('canvas');
+    renderCanvas.width  = Math.round(pageW);
+    renderCanvas.height = Math.round(pageH);
+    const ctx = renderCanvas.getContext('2d');
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    const imageData = ctx.getImageData(0, 0, renderCanvas.width, renderCanvas.height);
+
+    pages.push({ pageNum: i, text, charCount: text.length, fontNames: [...fontNames],
+      fontSizes, footerText, footerFontSizes, xPositions,
+      pageWidth: pageW, pageHeight: pageH, imageData });
+  }
+
+  return { pages, numPages };
+}
+
+// ──────────────────────────────────────────────────────────────
+// VISUAL ANALYSIS HELPERS
+// ──────────────────────────────────────────────────────────────
+function rgbDist(r1,g1,b1,r2,g2,b2) {
+  return Math.sqrt((r1-r2)**2+(g1-g2)**2+(b1-b2)**2);
+}
+// Brand palette entries: {name, rgb:[r,g,b], tol}
+const BRAND_PALETTE = [
+  { name:'white',      rgb:[255,255,255], tol:25 },
+  { name:'brand_blue', rgb:[1,92,230],    tol:45 },
+  { name:'black',      rgb:[18,18,18],    tol:35 },
+  { name:'grey',       rgb:[130,130,130], tol:40 },
+  { name:'light_blue', rgb:[232,241,255], tol:25 },
+  { name:'light_grey', rgb:[240,244,249], tol:20 },
+  { name:'dark_navy',  rgb:[0,14,68],     tol:60 },
+];
+function isInBrandPalette(r,g,b) {
+  return BRAND_PALETTE.some(c => rgbDist(r,g,b,...c.rgb) <= c.tol);
+}
+// Sample every `step` pixels, return array of [r,g,b]
+function samplePixels(imageData, step=5) {
+  const {data,width,height} = imageData;
+  const out = [];
+  for (let y=0; y<height; y+=step)
+    for (let x=0; x<width; x+=step) {
+      const i=(y*width+x)*4;
+      out.push([data[i],data[i+1],data[i+2]]);
+    }
+  return out;
+}
+// Fraction of samples within `tol` of targetRgb
+function colorFraction(samples, targetRgb, tol) {
+  const [tr,tg,tb]=targetRgb;
+  return samples.filter(([r,g,b])=>rgbDist(r,g,b,tr,tg,tb)<=tol).length / (samples.length||1);
+}
+// Count horizontal pixel rows where ≥minFrac of sampled pixels match color
+function countColorBands(imageData, targetRgb, tol, minFrac=0.3, step=4) {
+  const {data,width,height} = imageData;
+  const [tr,tg,tb]=targetRgb;
+  let bands=0;
+  for (let y=0; y<height; y++) {
+    let match=0, total=0;
+    for (let x=0; x<width; x+=step) {
+      const i=(y*width+x)*4;
+      total++;
+      if (rgbDist(data[i],data[i+1],data[i+2],tr,tg,tb)<=tol) match++;
+    }
+    if (total>0 && match/total>=minFrac) bands++;
+  }
+  return bands;
+}
+// Detect horizontal dark bands (table headers) + white pixels within them
+function detectTableHeaderInfo(imageData, step=4) {
+  const {data,width,height} = imageData;
+  const darkRows = [];
+  for (let y=0; y<height; y++) {
+    let dark=0, total=0;
+    for (let x=0; x<width; x+=step) {
+      const i=(y*width+x)*4;
+      total++;
+      if (data[i]<70 && data[i+1]<70 && data[i+2]<70) dark++;
+    }
+    if (total>0 && dark/total>=0.35) darkRows.push(y);
+  }
+  let whiteInDark=0;
+  for (const y of darkRows) {
+    for (let x=0; x<width; x+=step) {
+      const i=(y*width+x)*4;
+      if (data[i]>210 && data[i+1]>210 && data[i+2]>210) whiteInDark++;
+    }
+  }
+  return { darkBands: darkRows.length, hasWhiteText: whiteInDark > darkRows.length * 2 };
+}
+
+// ──────────────────────────────────────────────────────────────
+// LOCAL RULE-BASED ANALYZER
+// ──────────────────────────────────────────────────────────────
+function estimateFontFamilies(fontNameArr) {
+  const families = new Set();
+  fontNameArr.forEach(name => {
+    let clean = name.replace(/^[A-Z]{6}\+/, ''); // strip PDF subset prefix e.g. ABCDEF+
+    clean = clean.replace(/[-_](Regular|Bold|Italic|Light|Medium|SemiBold|Black|Thin|ExtraBold|BoldItalic)$/i, '');
+    clean = clean.replace(/(MT|PS|LT|Pro)$/i, '');
+    families.add(clean.toLowerCase().trim());
+  });
+  return families.size;
+}
+
+function runBrandChecks({ pages, numPages }) {
+  const checklist = [];
+  const page1 = pages[0] || { text: '', charCount: 0, fontNames: [], fontSizes: [], footerText: '' };
+  const bodyPages = pages.slice(1);
+
+  // Aggregate font info across all pages
+  const allFontNames = [...new Set(pages.flatMap(p => p.fontNames))];
+  const allFontSizes = [...new Set(pages.flatMap(p => p.fontSizes))];
+
+  function pass(id, cat, item, guide) {
+    checklist.push({ id, category: cat, item, status: 'pass', pages: null, excerpt: null, suggestion: null, guide_link: guide });
+  }
+  function fail(id, cat, item, pgs, excerpt, suggestion, guide) {
+    checklist.push({ id, category: cat, item, status: 'unable_to_determine', pages: pgs || null, excerpt, suggestion, guide_link: guide });
+  }
+  function unable(id, cat, item, guide) {
+    checklist.push({ id, category: cat, item, status: 'unable_to_determine', pages: null,
+      excerpt: 'Requires visual inspection — cannot be verified from extracted text alone.',
+      suggestion: null, guide_link: guide });
+  }
+
+  // ── PAGE SETUP ──────────────────────────────────────────────
+  // A4 = 595×842 PDF points ±20
+  {
+    const pg = pages[0];
+    if (!pg) {
+      unable('setup_format', 'Page Setup & Format', 'A4 Portrait format (8.27" × 11.69")', 'page_setup');
+    } else {
+      const isA4 = Math.abs(pg.pageWidth-595)<20 && Math.abs(pg.pageHeight-842)<20;
+      const isLetter = Math.abs(pg.pageWidth-612)<20 && Math.abs(pg.pageHeight-792)<20;
+      if (isA4) {
+        pass('setup_format','Page Setup & Format','A4 Portrait format (8.27" × 11.69")','page_setup');
+      } else {
+        fail('setup_format','Page Setup & Format','A4 Portrait format (8.27" × 11.69")','all',
+          `Detected: ${pg.pageWidth.toFixed(0)}×${pg.pageHeight.toFixed(0)} pts${isLetter?' (US Letter — not A4)':''} — expected 595×842 pts.`,
+          'In Google Docs: File → Page Setup → Paper Size → A4.','page_setup');
+      }
+    }
+  }
+  // Margin detection using x-position of body text
+  {
+    const bPages = pages.slice(1);
+    const leftMins = bPages.map(p => {
+      const xs = (p.xPositions||[]).filter(x=>x>5);
+      return xs.length ? Math.min(...xs) : null;
+    }).filter(v=>v!==null);
+    if (leftMins.length > 0) {
+      const avgIn = (leftMins.reduce((a,b)=>a+b,0)/leftMins.length)/72;
+      if (Math.abs(avgIn-0.8)<0.18) {
+        pass('setup_margins','Page Setup & Format','Margins are 0.8 inches on all four sides','page_setup');
+      } else {
+        fail('setup_margins','Page Setup & Format','Margins are 0.8 inches on all four sides','all',
+          `Estimated left margin ~${avgIn.toFixed(2)}" (expected 0.8").`,
+          'Set all four margins to 0.8" in File → Page Setup.','page_setup');
+      }
+    } else {
+      unable('setup_margins','Page Setup & Format','Margins are 0.8 inches on all four sides','page_setup');
+    }
+  }
+  // White background — check body pages pixel data
+  {
+    const bodyImgs = pages.slice(1).filter(p=>p.imageData);
+    if (bodyImgs.length === 0) {
+      unable('setup_background','Page Setup & Format','White background','page_setup');
+    } else {
+      const samples = bodyImgs.flatMap(p => samplePixels(p.imageData, 8));
+      const whitePct = samples.filter(([r,g,b])=>r>220&&g>220&&b>220).length / (samples.length||1);
+      if (whitePct > 0.65) {
+        pass('setup_background','Page Setup & Format','White background','page_setup');
+      } else {
+        fail('setup_background','Page Setup & Format','White background','all',
+          `Only ${Math.round(whitePct*100)}% of body page area is near-white — document may have a colored background.`,
+          'Remove any page background color. Go to File → Page Setup → Page Color → None.','page_setup');
+      }
+    }
+  }
+  // Portrait orientation — from PDF dimensions
+  {
+    const pg = pages[0];
+    if (!pg) {
+      unable('setup_orientation','Page Setup & Format','Portrait orientation','page_setup');
+    } else if (pg.pageWidth < pg.pageHeight) {
+      pass('setup_orientation','Page Setup & Format','Portrait orientation','page_setup');
+    } else {
+      fail('setup_orientation','Page Setup & Format','Portrait orientation','all',
+        `Page appears to be landscape (${pg.pageWidth.toFixed(0)}×${pg.pageHeight.toFixed(0)} pts).`,
+        'Set orientation to Portrait in File → Page Setup.','page_setup');
+    }
+  }
+
+  // ── TYPOGRAPHY ──────────────────────────────────────────────
+  // Font family — always pending (PDF font names are unreliable; verify manually)
+  unable('typo_font', 'Typography', 'Uses Geist font family', 'typography');
+
+  // typo_title: cover page should have ~34pt text
+  {
+    const p1sizes = pages[0]?.fontSizes || [];
+    const has34 = p1sizes.some(s => Math.abs(s-34)<=3);
+    if (p1sizes.length===0) {
+      unable('typo_title','Typography','Title text is 34px, white, used on cover page','typography');
+    } else if (has34) {
+      pass('typo_title','Typography','Title text is 34px, white, used on cover page','typography');
+    } else {
+      fail('typo_title','Typography','Title text is 34px, white, used on cover page','1',
+        `Cover page font sizes: ${[...new Set(p1sizes)].sort((a,b)=>b-a).slice(0,5).join(', ')}pt — no ~34pt title found.`,
+        'Apply "Title" style (34px, white) to the main title on the cover page.','typography');
+    }
+  }
+  // typo_h1: body pages should have ~18pt text
+  {
+    const bodySizes = pages.slice(1).flatMap(p=>p.fontSizes);
+    const has18 = bodySizes.some(s=>Math.abs(s-18)<=1);
+    if (bodySizes.length===0) {
+      unable('typo_h1','Typography','Heading 1 is 18px, Brand Blue (#015CE6)','typography');
+    } else if (has18) {
+      pass('typo_h1','Typography','Heading 1 is 18px, Brand Blue (#015CE6)','typography');
+    } else {
+      fail('typo_h1','Typography','Heading 1 is 18px, Brand Blue (#015CE6)','all',
+        `No ~18pt text found on body pages. Sizes present: ${[...new Set(bodySizes)].sort((a,b)=>b-a).slice(0,6).join(', ')}pt.`,
+        'Apply "Heading 1" style (18px, Brand Blue #015CE6) to all section headings.','typography');
+    }
+  }
+  // typo_h2: body pages should have ~14pt text
+  {
+    const bodySizes = pages.slice(1).flatMap(p=>p.fontSizes);
+    const has14 = bodySizes.some(s=>Math.abs(s-14)<=1);
+    if (bodySizes.length===0) {
+      unable('typo_h2','Typography','Heading 2 is 14px, Grey (#828282)','typography');
+    } else if (has14) {
+      pass('typo_h2','Typography','Heading 2 is 14px, Grey (#828282)','typography');
+    } else {
+      fail('typo_h2','Typography','Heading 2 is 14px, Grey (#828282)','all',
+        `No ~14pt text found on body pages.`,
+        'Apply "Heading 2" style (14px, Grey #828282) to sub-section headings.','typography');
+    }
+  }
+  // typo_body: body pages should have ~11pt text
+  {
+    const bodySizes = pages.slice(1).flatMap(p=>p.fontSizes);
+    const has11 = bodySizes.some(s=>Math.abs(s-11)<=1);
+    if (bodySizes.length===0) {
+      unable('typo_body','Typography','Body/Normal text is 11px, Black (#121212)','typography');
+    } else if (has11) {
+      pass('typo_body','Typography','Body/Normal text is 11px, Black (#121212)','typography');
+    } else {
+      fail('typo_body','Typography','Body/Normal text is 11px, Black (#121212)','all',
+        `No ~11pt body text found. Sizes: ${[...new Set(bodySizes)].sort((a,b)=>a-b).slice(0,6).join(', ')}pt.`,
+        'Apply "Normal text" style (11px, Black #121212) to all body content.','typography');
+    }
+  }
+  // typo_footer_size: footer items should be ~8pt
+  {
+    const allFooterSizes = pages.flatMap(p=>p.footerFontSizes||[]);
+    const has8 = allFooterSizes.some(s=>Math.abs(s-8)<=1);
+    if (allFooterSizes.length===0) {
+      unable('typo_footer_size','Typography','Footer text is 8px','typography');
+    } else if (has8) {
+      pass('typo_footer_size','Typography','Footer text is 8px','typography');
+    } else {
+      fail('typo_footer_size','Typography','Footer text is 8px','all',
+        `Footer font sizes detected: ${[...new Set(allFooterSizes)].join(', ')}pt — expected 8pt.`,
+        'Select footer text and set font size to 8pt (Heading 5 style).','typography');
+    }
+  }
+
+  // Rogue font sizes
+  const ALLOWED_SIZES = [8, 10, 11, 14, 18, 34];
+  const rogueSizes = allFontSizes.filter(s => !ALLOWED_SIZES.some(a => Math.abs(a - s) <= 1));
+  if (allFontSizes.length === 0) {
+    unable('typo_no_rogue_sizes', 'Typography', 'No extra/rogue font sizes outside the type scale', 'typography');
+  } else if (rogueSizes.length > 0) {
+    fail('typo_no_rogue_sizes', 'Typography', 'No extra/rogue font sizes outside the type scale', 'all',
+      `Non-standard sizes detected: ${[...new Set(rogueSizes)].slice(0, 6).join('px, ')}px`,
+      'Use only the approved type scale: 8, 10, 11, 14, 18, 34px.', 'typography');
+  } else {
+    pass('typo_no_rogue_sizes', 'Typography', 'No extra/rogue font sizes outside the type scale', 'typography');
+  }
+
+  // ── BRAND COLORS — pixel analysis ───────────────────────────
+  {
+    const allPages = pages.filter(p=>p.imageData);
+    const bodyPgs  = pages.slice(1).filter(p=>p.imageData);
+    if (allPages.length === 0) {
+      // No imageData — fall back to pending
+      unable('color_brand_blue', 'Brand Colors','Brand Blue (#015CE6) used for headings and charts','brand_colors');
+      unable('color_black',      'Brand Colors','Black (#121212) used for table headers and body text','brand_colors');
+      unable('color_grey',       'Brand Colors','Grey (#828282) used for subtitles and footer','brand_colors');
+      unable('color_light_blue', 'Brand Colors','Light Blue (#E8F1FF) used for table column backgrounds','brand_colors');
+      unable('color_light_grey', 'Brand Colors','Light Grey (#F0F4F9) used for alternate table backgrounds','brand_colors');
+      unable('color_no_offbrand','Brand Colors','No off-brand colors detected','brand_colors');
+    } else {
+      const allSamples  = allPages.flatMap(p=>samplePixels(p.imageData,5));
+      const bodySamples = bodyPgs.length > 0 ? bodyPgs.flatMap(p=>samplePixels(p.imageData,5)) : allSamples;
+
+      // Brand Blue #015CE6
+      const blueFrac = colorFraction(allSamples,[1,92,230],45);
+      if (blueFrac >= 0.001) {
+        pass('color_brand_blue','Brand Colors','Brand Blue (#015CE6) used for headings and charts','brand_colors');
+      } else {
+        fail('color_brand_blue','Brand Colors','Brand Blue (#015CE6) used for headings and charts','all',
+          'Brand Blue (#015CE6) not found in the document.',
+          'Apply Brand Blue (#015CE6) to all H1 headings and chart accents.','brand_colors');
+      }
+
+      // Black #121212
+      const blackFrac = colorFraction(allSamples,[18,18,18],35);
+      if (blackFrac >= 0.002) {
+        pass('color_black','Brand Colors','Black (#121212) used for table headers and body text','brand_colors');
+      } else {
+        fail('color_black','Brand Colors','Black (#121212) used for table headers and body text','brand_colors',
+          'Near-black (#121212) not detected — body text or table headers may use a different color.',
+          'Set body text and table header backgrounds to #121212.','brand_colors');
+      }
+
+      // Grey #828282
+      const greyFrac = colorFraction(allSamples,[130,130,130],40);
+      if (greyFrac >= 0.001) {
+        pass('color_grey','Brand Colors','Grey (#828282) used for subtitles and footer','brand_colors');
+      } else {
+        fail('color_grey','Brand Colors','Grey (#828282) used for subtitles and footer','brand_colors',
+          'Grey (#828282) not found — H2 headings or footer text may use wrong color.',
+          'Apply Grey (#828282) to Heading 2 text and footer content.','brand_colors');
+      }
+
+      // Light Blue #E8F1FF
+      const lbFrac = colorFraction(bodySamples,[232,241,255],25);
+      if (lbFrac >= 0.005) {
+        pass('color_light_blue','Brand Colors','Light Blue (#E8F1FF) used for table column backgrounds','brand_colors');
+      } else {
+        fail('color_light_blue','Brand Colors','Light Blue (#E8F1FF) used for table column backgrounds','brand_colors',
+          'Light Blue (#E8F1FF) not found — table body rows may be missing brand background color.',
+          'Set table body row background to Light Blue (#E8F1FF).','brand_colors');
+      }
+
+      // Light Grey #F0F4F9
+      const lgFrac = colorFraction(bodySamples,[240,244,249],20);
+      if (lgFrac >= 0.003) {
+        pass('color_light_grey','Brand Colors','Light Grey (#F0F4F9) used for alternate table backgrounds','brand_colors');
+      } else {
+        fail('color_light_grey','Brand Colors','Light Grey (#F0F4F9) used for alternate table backgrounds','brand_colors',
+          'Light Grey (#F0F4F9) not found — left-column label backgrounds may be missing.',
+          'Set left-column label cell backgrounds to Light Grey (#F0F4F9).','brand_colors');
+      }
+
+      // No off-brand colors: check non-white body pixels are in brand palette
+      const nonWhite = bodySamples.filter(([r,g,b])=>!(r>225&&g>225&&b>225));
+      if (nonWhite.length < 50) {
+        unable('color_no_offbrand','Brand Colors','No off-brand colors detected','brand_colors');
+      } else {
+        const offBrand = nonWhite.filter(([r,g,b])=>!isInBrandPalette(r,g,b));
+        const offPct   = offBrand.length / nonWhite.length;
+        if (offPct < 0.04) {
+          pass('color_no_offbrand','Brand Colors','No off-brand colors detected','brand_colors');
+        } else {
+          // Find most common off-brand color (quantised)
+          const buckets={};
+          offBrand.forEach(([r,g,b])=>{
+            const k=`${Math.round(r/16)*16},${Math.round(g/16)*16},${Math.round(b/16)*16}`;
+            buckets[k]=(buckets[k]||0)+1;
+          });
+          const topOff=Object.entries(buckets).sort((a,b)=>b[1]-a[1]).slice(0,2).map(([k])=>'#'+k.split(',').map(v=>parseInt(v).toString(16).padStart(2,'0')).join(''));
+          fail('color_no_offbrand','Brand Colors','No off-brand colors detected','all',
+            `~${Math.round(offPct*100)}% of non-background pixels appear off-brand. Possible off-brand colors: ${topOff.join(', ')}.`,
+            'Replace off-brand colors with approved palette: #015CE6, #121212, #828282, #E8F1FF, #F0F4F9.','brand_colors');
+        }
+      }
+    }
+  }
+
+  // ── LAYOUT ──────────────────────────────────────────────────
+  // Two-column detection: check if body pages have text in two distinct x-clusters
+  const bodyPagesForLayout = pages.slice(1);
+  if (bodyPagesForLayout.length > 0 && bodyPagesForLayout[0].xPositions) {
+    const allX = bodyPagesForLayout.flatMap(p => p.xPositions || []);
+    const pageW = bodyPagesForLayout[0].pageWidth || 595;
+    const leftZone  = allX.filter(x => x < pageW * 0.38).length;
+    const rightZone = allX.filter(x => x >= pageW * 0.38).length;
+    const leftPct   = leftZone / (allX.length || 1);
+    if (allX.length < 10) {
+      unable('layout_two_column', 'Layout & Spacing', 'Two-column layout used (Left ~30%, Right ~70%)', 'layout_spacing');
+    } else if (leftPct >= 0.08 && leftPct <= 0.45) {
+      pass('layout_two_column', 'Layout & Spacing', 'Two-column layout used (Left ~30%, Right ~70%)', 'layout_spacing');
+    } else if (leftPct < 0.08) {
+      fail('layout_two_column', 'Layout & Spacing', 'Two-column layout used (Left ~30%, Right ~70%)', 'all',
+        'Text appears to be in a single full-width column.',
+        'Use a borderless two-column table: left column 30% for labels, right column 70% for content.', 'layout_spacing');
+    } else {
+      unable('layout_two_column', 'Layout & Spacing', 'Two-column layout used (Left ~30%, Right ~70%)', 'layout_spacing');
+    }
+  } else {
+    unable('layout_two_column', 'Layout & Spacing', 'Two-column layout used (Left ~30%, Right ~70%)', 'layout_spacing');
+  }
+
+  unable('layout_line_length', 'Layout & Spacing', 'Line length within 50–75 character range', 'layout_spacing');
+
+  // Whitespace / content density (exclude cover page from avg)
+  const bodyCharAvg = bodyPagesForLayout.length > 0
+    ? bodyPagesForLayout.reduce((s,p) => s + p.charCount, 0) / bodyPagesForLayout.length : 0;
+  if (bodyCharAvg === 0) {
+    unable('layout_whitespace', 'Layout & Spacing', 'Generous whitespace — pages are not cramped', 'layout_spacing');
+  } else if (bodyCharAvg > 2800) {
+    fail('layout_whitespace', 'Layout & Spacing', 'Generous whitespace — pages are not cramped', 'all',
+      `Average ~${Math.round(bodyCharAvg)} characters per body page — pages appear dense.`,
+      'Reduce content per page. Move overflow to a new page — never shrink fonts or spacing to fit.', 'layout_spacing');
+  } else {
+    pass('layout_whitespace', 'Layout & Spacing', 'Generous whitespace — pages are not cramped', 'layout_spacing');
+  }
+
+  unable('layout_left_aligned', 'Layout & Spacing', 'Left-aligned text (NOT justified)', 'layout_spacing');
+  unable('layout_breathing_room', 'Layout & Spacing', 'Content has breathing room', 'layout_spacing');
+
+  // ── TABLES — pixel analysis ──────────────────────────────────
+  // table_font_size: check body pages for ~10pt text
+  {
+    const bodySizes = pages.slice(1).flatMap(p=>p.fontSizes);
+    const has10 = bodySizes.some(s=>Math.abs(s-10)<=1);
+    if (bodySizes.length===0) {
+      unable('table_font_size','Tables','Table font size is 10px','tables');
+    } else if (has10) {
+      pass('table_font_size','Tables','Table font size is 10px','tables');
+    } else {
+      fail('table_font_size','Tables','Table font size is 10px','all',
+        `No ~10pt text found on body pages. Sizes: ${[...new Set(bodySizes)].sort((a,b)=>a-b).slice(0,6).join(', ')}pt.`,
+        'Select all table cells and set font size to 10px.','tables');
+    }
+  }
+  // table_header_bg + table_header_text: look for dark horizontal bands on body pages
+  {
+    const bodyImgs = pages.slice(1).filter(p=>p.imageData);
+    if (bodyImgs.length===0) {
+      unable('table_header_bg', 'Tables','Table header background is Brand Blue or Black','tables');
+      unable('table_header_text','Tables','Table header text is White','tables');
+    } else {
+      let totalDarkBands=0, hasWhiteText=false;
+      bodyImgs.forEach(pg=>{
+        const info = detectTableHeaderInfo(pg.imageData);
+        totalDarkBands += info.darkBands;
+        if (info.hasWhiteText) hasWhiteText=true;
+      });
+      if (totalDarkBands >= 3) {
+        pass('table_header_bg','Tables','Table header background is Brand Blue or Black','tables');
+        if (hasWhiteText) {
+          pass('table_header_text','Tables','Table header text is White','tables');
+        } else {
+          fail('table_header_text','Tables','Table header text is White','tables',
+            'Dark table header rows detected but white text not confirmed inside them.',
+            'Set table header text color to White (#FFFFFF).','tables');
+        }
+      } else {
+        fail('table_header_bg','Tables','Table header background is Brand Blue or Black','tables',
+          'No dark-background table header rows detected. Tables may be missing header styling.',
+          'Select the header row of each table and set background to Black (#121212) or Brand Blue (#015CE6).','tables');
+        unable('table_header_text','Tables','Table header text is White','tables');
+      }
+    }
+  }
+  // table_body_bg: look for light-blue horizontal bands on body pages
+  {
+    const bodyImgs = pages.slice(1).filter(p=>p.imageData);
+    if (bodyImgs.length===0) {
+      unable('table_body_bg','Tables','Table body background uses Light Blue or Light Grey','tables');
+    } else {
+      let lbBands=0, lgBands=0;
+      bodyImgs.forEach(pg=>{
+        lbBands += countColorBands(pg.imageData,[232,241,255],25,0.25);
+        lgBands += countColorBands(pg.imageData,[240,244,249],20,0.25);
+      });
+      if (lbBands >= 5 || lgBands >= 5) {
+        pass('table_body_bg','Tables','Table body background uses Light Blue or Light Grey','tables');
+      } else {
+        fail('table_body_bg','Tables','Table body background uses Light Blue or Light Grey','tables',
+          'Light Blue (#E8F1FF) or Light Grey (#F0F4F9) table body rows not detected.',
+          'Set table body cell backgrounds alternating between Light Blue (#E8F1FF) and Light Grey (#F0F4F9).','tables');
+      }
+    }
+  }
+  unable('table_border',    'Tables','Table border weight is 3pt, border color is White',   'tables');
+  unable('table_padding',   'Tables','Cell padding is 0.1 inches',                          'tables');
+  unable('table_alignment', 'Tables','Tables are inline, left-aligned',                     'tables');
+
+  // ── COVER PAGE ──────────────────────────────────────────────
+  const avgBodyChars = bodyPages.length > 0
+    ? bodyPages.reduce((s, p) => s + p.charCount, 0) / bodyPages.length : 0;
+  const coverCharCount = page1.charCount;
+
+  if (numPages < 2) {
+    fail('cover_distinct', 'Cover Page', 'Has a distinct cover page', '1',
+      'Document appears to be only one page — no dedicated cover detected.',
+      'Add a cover page with Brand Blue background, title, subtitle, and SecurityPal AI branding.', 'cover_page');
+  } else if (coverCharCount < avgBodyChars * 0.55) {
+    pass('cover_distinct', 'Cover Page', 'Has a distinct cover page', 'cover_page');
+  } else {
+    fail('cover_distinct', 'Cover Page', 'Has a distinct cover page', '1',
+      `Page 1 has ~${coverCharCount} chars vs. avg body page ~${Math.round(avgBodyChars)} chars — may not be a distinct cover.`,
+      'Keep the cover page minimal: title, subtitle, and branding only on a Brand Blue background.', 'cover_page');
+  }
+
+  // Cover page visual checks
+  {
+    const p1img = pages[0]?.imageData;
+    if (!p1img) {
+      unable('cover_blue_bg',    'Cover Page','Cover uses Brand Blue background','cover_page');
+      unable('cover_white_title','Cover Page','Title text is large, white, prominent','cover_page');
+    } else {
+      const p1samples = samplePixels(p1img, 5);
+      // Dark blue/navy cover: significant portion of pixels should be dark and blue-ish
+      const darkBluePct = p1samples.filter(([r,g,b])=>
+        b > r+20 && b > g+20 && r < 120 && g < 120 && b < 200
+      ).length / (p1samples.length||1);
+      const deepDarkPct = p1samples.filter(([r,g,b])=>r<80&&g<80&&b<80).length/(p1samples.length||1);
+      if (darkBluePct > 0.12 || deepDarkPct > 0.25) {
+        pass('cover_blue_bg','Cover Page','Cover uses Brand Blue background','cover_page');
+      } else {
+        fail('cover_blue_bg','Cover Page','Cover uses Brand Blue background','1',
+          'Cover page does not appear to have a dark Brand Blue background.',
+          'Set the cover page background color to Brand Blue (#015CE6) or the approved dark navy.','cover_page');
+      }
+      // White title: check for white pixels on the cover (text on dark bg)
+      const whitePct = p1samples.filter(([r,g,b])=>r>220&&g>220&&b>220).length/(p1samples.length||1);
+      if (whitePct > 0.02 && whitePct < 0.5) {
+        // Some white (title text) but not too much (would mean light bg)
+        pass('cover_white_title','Cover Page','Title text is large, white, prominent','cover_page');
+      } else if (whitePct >= 0.5) {
+        fail('cover_white_title','Cover Page','Title text is large, white, prominent','1',
+          'Cover page appears mostly white — title text should be white on a dark background, not dark on white.',
+          'Place the title in white text on the Brand Blue/dark cover background.','cover_page');
+      } else {
+        fail('cover_white_title','Cover Page','Title text is large, white, prominent','1',
+          'No prominent white text detected on the cover page.',
+          'Set the cover title to white (Geist, 34pt) on the Brand Blue background.','cover_page');
+      }
+    }
+  }
+
+  // SecurityPal branding detection
+  const p1Lower = page1.text.toLowerCase();
+  if (p1Lower.includes('securitypal')) {
+    pass('cover_branding', 'Cover Page', 'SecurityPal AI branding present', 'cover_page');
+  } else {
+    fail('cover_branding', 'Cover Page', 'SecurityPal AI branding present', '1',
+      'SecurityPal AI name/branding not found on page 1.',
+      'Add the SecurityPal AI logo or company name prominently to the cover page.', 'cover_page');
+  }
+
+  // ── FOOTER ──────────────────────────────────────────────────
+  if (bodyPages.length >= 2) {
+    const normFooters = bodyPages.map(p => {
+      // Normalise: lowercase, strip page numbers and dates (YYYY-MM-DD)
+      return p.footerText.trim().toLowerCase()
+        .replace(/\b\d{4}-\d{2}-\d{2}\b/g, '#date#')
+        .replace(/\b\d+\b/g, '#')
+        .replace(/\s+/g, ' ');
+    });
+    const nonEmpty = normFooters.filter(f => f.length > 3);
+    const unique = new Set(nonEmpty);
+    if (nonEmpty.length === 0) {
+      unable('footer_consistent', 'Footer', 'Consistent footer across all body pages', 'footer');
+    } else if (unique.size <= 2) {
+      pass('footer_consistent', 'Footer', 'Consistent footer across all body pages', 'footer');
+    } else {
+      fail('footer_consistent', 'Footer', 'Consistent footer across all body pages', 'multiple',
+        `${unique.size} different footer patterns detected across body pages.`,
+        'Use Google Docs footer editing (double-click footer area) to set a single consistent footer on all body pages.', 'footer');
+    }
+  } else {
+    unable('footer_consistent', 'Footer', 'Consistent footer across all body pages', 'footer');
+  }
+
+  // footer_style: check footer font sizes
+  {
+    const allFooterSizes = pages.flatMap(p=>p.footerFontSizes||[]);
+    const has8 = allFooterSizes.some(s=>Math.abs(s-8)<=1);
+    if (allFooterSizes.length===0) {
+      unable('footer_style','Footer','Footer text uses Heading 5 style (8px)','footer');
+    } else if (has8) {
+      pass('footer_style','Footer','Footer text uses Heading 5 style (8px)','footer');
+    } else {
+      fail('footer_style','Footer','Footer text uses Heading 5 style (8px)','all',
+        `Footer font sizes: ${[...new Set(allFooterSizes)].join(', ')}pt — expected 8pt.`,
+        'Apply "Heading 5" style to footer text, or manually set to 8pt.','footer');
+    }
+  }
+
+  if (page1 && bodyPages.length > 0) {
+    const cFoot = page1.footerText.trim().toLowerCase().replace(/\b\d+\b/g, '#');
+    const bFoot = bodyPages[0].footerText.trim().toLowerCase().replace(/\b\d+\b/g, '#');
+    if (cFoot !== bFoot && cFoot.length > 0 && bFoot.length > 0) {
+      pass('footer_cover_different', 'Footer', 'Cover page footer is different from body footer', 'footer');
+    } else {
+      unable('footer_cover_different', 'Footer', 'Cover page footer is different from body footer', 'footer');
+    }
+  } else {
+    unable('footer_cover_different', 'Footer', 'Cover page footer is different from body footer', 'footer');
+  }
+
+  // ── PROFESSIONALISM ─────────────────────────────────────────
+  unable('pro_no_borders', 'Overall Professionalism', 'No decorative borders or unnecessary effects', 'what_not_to_do');
+  unable('pro_no_justified','Overall Professionalism', 'No justified text',                           'what_not_to_do');
+
+  // Multiple font families — always pending (font name detection is unreliable in PDFs)
+  unable('pro_no_multi_fonts', 'Overall Professionalism', 'No multiple competing fonts', 'what_not_to_do');
+
+  // Hierarchy: distinct font sizes = distinct levels
+  const distinctSizes = new Set(allFontSizes).size;
+  if (distinctSizes === 0) {
+    unable('pro_hierarchy', 'Overall Professionalism', 'Clear visual hierarchy', 'what_not_to_do');
+  } else if (distinctSizes >= 3) {
+    pass('pro_hierarchy', 'Overall Professionalism', 'Clear visual hierarchy', 'what_not_to_do');
+  } else {
+    fail('pro_hierarchy', 'Overall Professionalism', 'Clear visual hierarchy', 'all',
+      `Only ${distinctSizes} distinct font size(s) detected — limited visual hierarchy.`,
+      'Apply the full type scale: use H1 (18px), H2 (14px), body (11px), and footer (8px) consistently.', 'what_not_to_do');
+  }
+
+  // Score
+  const passed = checklist.filter(i => i.status === 'pass').length;
+  const failed = checklist.filter(i => i.status === 'fail').length;
+  const undetermined = checklist.filter(i => i.status === 'unable_to_determine').length;
+  const total = checklist.length;
+
+  let summary = `Analyzed ${numPages} page(s). `;
+  if (failed === 0) {
+    summary += `No issues detected. ${undetermined} item(s) are pending manual review (colors, exact sizes, alignment — open the document to verify).`;
+  } else {
+    summary += `${failed} issue(s) found. ${undetermined} item(s) pending manual review — open the document and verify colors, font sizes, and alignment.`;
+  }
+
+  return { checklist, score: { passed, failed, undetermined, total }, summary };
+}
+
+// ──────────────────────────────────────────────────────────────
+// GOOGLE DOCS FETCH + HTML ANALYSIS
+// ──────────────────────────────────────────────────────────────
+function extractGoogleDocId(url) {
+  const m = url.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+function parseCssProps(str) {
+  const props = {};
+  str.split(';').forEach(decl => {
+    const ci = decl.indexOf(':');
+    if (ci === -1) return;
+    const k = decl.slice(0, ci).trim().toLowerCase();
+    const v = decl.slice(ci + 1).trim();
+    if (k && v) props[k] = v;
+  });
+  return props;
+}
+
+function parseStyleBlock(htmlText) {
+  const m = htmlText.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+  if (!m) return {};
+  const classMap = {};
+  const re = /\.([a-zA-Z0-9_-]+)\s*\{([^}]+)\}/g;
+  let match;
+  while ((match = re.exec(m[1])) !== null) {
+    classMap[match[1]] = parseCssProps(match[2]);
+  }
+  return classMap;
+}
+
+function normalizeColor(c) {
+  if (!c) return null;
+  c = c.trim().toLowerCase().replace(/\s/g, '');
+  const rgb = c.match(/^rgba?\((\d+),(\d+),(\d+)/);
+  if (rgb) return '#' + [rgb[1],rgb[2],rgb[3]].map(n => (+n).toString(16).padStart(2,'0')).join('');
+  if (c.startsWith('#')) {
+    if (c.length === 4) return '#' + c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+    return c.length >= 7 ? c.slice(0,7) : c;
+  }
+  return null;
+}
+
+function colorDist(a, b) {
+  if (!a || !b || a.length < 7 || b.length < 7) return 999;
+  const d = (i) => parseInt(a.slice(i,i+2),16) - parseInt(b.slice(i,i+2),16);
+  return Math.sqrt(d(1)**2 + d(3)**2 + d(5)**2);
+}
+
+const BRAND = { blue:'#015ce6', black:'#121212', grey:'#828282', lBlue:'#e8f1ff', lGrey:'#f0f4f9', white:'#ffffff' };
+const BRAND_ALL = Object.values(BRAND);
+function isOnBrand(hex) { return !hex || BRAND_ALL.some(b => colorDist(hex,b) < 28); }
+
+function parsePt(sizeStr) {
+  if (!sizeStr) return 0;
+  const m = sizeStr.match(/^([\d.]+)(pt|px|em)?/);
+  if (!m) return 0;
+  const v = parseFloat(m[1]), u = m[2]||'pt';
+  return Math.round(u==='px' ? v : u==='em' ? v*16 : v*1.333);
+}
+
+function analyzeGDocHtml(htmlText) {
+  const classMap = parseStyleBlock(htmlText);
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlText, 'text/html');
+
+  function getStyles(el) {
+    const s = {};
+    (el.className||'').split(/\s+/).forEach(cls => { if (classMap[cls]) Object.assign(s, classMap[cls]); });
+    Object.assign(s, parseCssProps(el.getAttribute('style')||''));
+    return s;
+  }
+
+  const fontFamilies = new Set(), fontSizes = new Set();
+  const textColors = new Set(), bgColors = new Set(), aligns = new Set();
+
+  doc.querySelectorAll('*').forEach(el => {
+    const s = getStyles(el);
+    if (s['font-family']) fontFamilies.add(s['font-family']);
+    if (s['font-size'])   fontSizes.add(s['font-size']);
+    if (s['color'])       textColors.add(normalizeColor(s['color']));
+    if (s['background-color']) bgColors.add(normalizeColor(s['background-color']));
+    if (s['text-align'])  aligns.add(s['text-align']);
+  });
+
+  // Tables
+  const tables = [];
+  doc.querySelectorAll('table').forEach(tbl => {
+    const rows = tbl.querySelectorAll('tr');
+    if (!rows.length) return;
+    const hCells = rows[0].querySelectorAll('td,th');
+    const bCells = rows[1] ? rows[1].querySelectorAll('td') : [];
+    const hs = hCells.length ? getStyles(hCells[0]) : {};
+    const bs = bCells.length ? getStyles(bCells[0]) : {};
+    tables.push({
+      headerBg:    normalizeColor(hs['background-color']),
+      headerColor: normalizeColor(hs['color']),
+      bodyBg:      normalizeColor(bs['background-color']),
+      fontSize:    hs['font-size'] || bs['font-size'],
+    });
+  });
+
+  // Page count via HR page breaks
+  const pageBreaks = doc.querySelectorAll('hr');
+  const numPages = pageBreaks.length + 1;
+
+  // First-page text: everything before the first HR
+  let firstPageText = '';
+  const firstHR = pageBreaks[0];
+  if (firstHR) {
+    let n = doc.body ? doc.body.firstChild : null, parts = [];
+    while (n && n !== firstHR) { parts.push(n.textContent||''); n = n.nextSibling; }
+    firstPageText = parts.join(' ');
+  } else if (doc.body) {
+    firstPageText = (doc.body.textContent||'').slice(0, 800);
+  }
+
+  return {
+    fontFamilies: [...fontFamilies],
+    fontSizes:    [...fontSizes],
+    textColors:   [...textColors].filter(Boolean),
+    bgColors:     [...bgColors].filter(Boolean),
+    hasJustified: aligns.has('justify'),
+    aligns:       [...aligns],
+    tables,
+    numPages,
+    firstPageText,
+    allText: doc.body ? doc.body.textContent||'' : '',
+  };
+}
+
+function runHtmlBrandChecks(d) {
+  const { fontFamilies, fontSizes, textColors, bgColors, hasJustified, aligns, tables, numPages, firstPageText } = d;
+  const checklist = [];
+
+  function pass(id,cat,item,g)     { checklist.push({id,category:cat,item,status:'pass',pages:null,excerpt:null,suggestion:null,guide_link:g}); }
+  function fail(id,cat,item,pg,ex,sug,g) { checklist.push({id,category:cat,item,status:'unable_to_determine',pages:pg||null,excerpt:ex,suggestion:sug,guide_link:g}); }
+  function unable(id,cat,item,g)   { checklist.push({id,category:cat,item,status:'unable_to_determine',pages:null,excerpt:'Requires visual inspection.',suggestion:null,guide_link:g}); }
+
+  const sizesPx = fontSizes.map(parsePt).filter(s=>s>0);
+  const hasGeist       = fontFamilies.some(f=>f.toLowerCase().includes('geist'));
+  const hasBrandBlue   = textColors.some(c=>colorDist(c,BRAND.blue)<28);
+  const hasGrey        = textColors.some(c=>colorDist(c,BRAND.grey)<28);
+  const hasBlack       = textColors.some(c=>colorDist(c,BRAND.black)<25);
+  const hasPureBlack   = textColors.some(c=>colorDist(c,'#000000')<10);
+  const hasLightBlueBg = bgColors.some(c=>colorDist(c,BRAND.lBlue)<28);
+  const hasLightGreyBg = bgColors.some(c=>colorDist(c,BRAND.lGrey)<28);
+  const hasBlueBg      = bgColors.some(c=>colorDist(c,BRAND.blue)<28);
+  const offBrandColors = [...new Set([...textColors,...bgColors])].filter(c=>c&&c!==BRAND.white&&!isOnBrand(c));
+
+  // ── PAGE SETUP (visual only) ─────────────────────────────────
+  unable('setup_format','Page Setup & Format','A4 Portrait format (8.27" × 11.69")','page_setup');
+  unable('setup_margins','Page Setup & Format','Margins are 0.8 inches on all four sides','page_setup');
+  unable('setup_background','Page Setup & Format','White background','page_setup');
+  unable('setup_orientation','Page Setup & Format','Portrait orientation','page_setup');
+
+  // ── TYPOGRAPHY ───────────────────────────────────────────────
+  unable('typo_font','Typography','Uses Geist font family','typography');
+
+  const hasTitle = sizesPx.some(s=>s>=40&&s<=52);
+  if (!sizesPx.length) unable('typo_title','Typography','Title text is 34px, white, used on cover page','typography');
+  else if (hasTitle) pass('typo_title','Typography','Title text is 34px, white, used on cover page','typography');
+  else fail('typo_title','Typography','Title text is 34px, white, used on cover page','1',
+    `No ~34px title found. Largest: ${Math.max(...sizesPx)}px`,
+    'Add a 34px white title on the cover page.','typography');
+
+  const hasH1Size = sizesPx.some(s=>s>=22&&s<=28);
+  if (!sizesPx.length) unable('typo_h1','Typography','Heading 1 is 18px, Brand Blue (#015CE6)','typography');
+  else if (hasH1Size && hasBrandBlue) pass('typo_h1','Typography','Heading 1 is 18px, Brand Blue (#015CE6)','typography');
+  else fail('typo_h1','Typography','Heading 1 is 18px, Brand Blue (#015CE6)','all',
+    !hasH1Size ? 'No ~18px heading found.' : 'Brand Blue (#015CE6) missing from text colors.',
+    'Set H1 to 18px, color #015CE6.','typography');
+
+  const hasH2Size = sizesPx.some(s=>s>=17&&s<=21);
+  if (!sizesPx.length) unable('typo_h2','Typography','Heading 2 is 14px, Grey (#828282)','typography');
+  else if (hasH2Size && hasGrey) pass('typo_h2','Typography','Heading 2 is 14px, Grey (#828282)','typography');
+  else fail('typo_h2','Typography','Heading 2 is 14px, Grey (#828282)','all',
+    !hasH2Size ? 'No ~14px heading found.' : 'Grey (#828282) missing from text colors.',
+    'Set H2 to 14px, color #828282.','typography');
+
+  const hasBodySize = sizesPx.some(s=>s>=13&&s<=17);
+  if (!sizesPx.length) unable('typo_body','Typography','Body/Normal text is 11px, Black (#121212)','typography');
+  else if (hasBodySize) pass('typo_body','Typography','Body/Normal text is 11px, Black (#121212)','typography');
+  else fail('typo_body','Typography','Body/Normal text is 11px, Black (#121212)','all',
+    `No ~11px body text. Sizes found: ${[...new Set(sizesPx)].sort((a,b)=>a-b).slice(0,5).join(', ')}px`,
+    'Set body text to 11px, #121212.','typography');
+
+  const hasFooterSize = sizesPx.some(s=>s>=9&&s<=12);
+  if (!sizesPx.length) unable('typo_footer_size','Typography','Footer text is 8px','typography');
+  else if (hasFooterSize) pass('typo_footer_size','Typography','Footer text is 8px','typography');
+  else fail('typo_footer_size','Typography','Footer text is 8px','all','No 8px footer text found.','Set footer to Heading 5: 8px, Geist.','typography');
+
+  const ALLOWED_RANGES = [[9,12],[12,14],[13,17],[17,21],[22,28],[40,52]];
+  const rogues = sizesPx.filter(s=>!ALLOWED_RANGES.some(([lo,hi])=>s>=lo&&s<=hi));
+  if (!sizesPx.length) unable('typo_no_rogue_sizes','Typography','No extra/rogue font sizes outside the type scale','typography');
+  else if (rogues.length) fail('typo_no_rogue_sizes','Typography','No extra/rogue font sizes outside the type scale','all',
+    `Non-standard sizes: ${[...new Set(rogues)].sort((a,b)=>a-b).slice(0,5).join(', ')}px`,
+    'Use only: 8, 10, 11, 14, 18, 34px.','typography');
+  else pass('typo_no_rogue_sizes','Typography','No extra/rogue font sizes outside the type scale','typography');
+
+  // ── BRAND COLORS ─────────────────────────────────────────────
+  if (!textColors.length) unable('color_brand_blue','Brand Colors','Brand Blue (#015CE6) used for headings and charts','brand_colors');
+  else if (hasBrandBlue) pass('color_brand_blue','Brand Colors','Brand Blue (#015CE6) used for headings and charts','brand_colors');
+  else fail('color_brand_blue','Brand Colors','Brand Blue (#015CE6) used for headings and charts','all','#015CE6 not detected in any text.','Apply #015CE6 to all H1 headings.','brand_colors');
+
+  if (!textColors.length) unable('color_black','Brand Colors','Black (#121212) used for table headers and body text','brand_colors');
+  else if (hasBlack) pass('color_black','Brand Colors','Black (#121212) used for table headers and body text','brand_colors');
+  else if (hasPureBlack) fail('color_black','Brand Colors','Black (#121212) used for table headers and body text','all',
+    'Pure #000000 detected — brand uses near-black #121212.',
+    'Replace #000000 with #121212 throughout.','brand_colors');
+  else fail('color_black','Brand Colors','Black (#121212) used for table headers and body text','all',
+    '#121212 not detected.','Set body text and table headers to #121212.','brand_colors');
+
+  if (!textColors.length) unable('color_grey','Brand Colors','Grey (#828282) used for subtitles and footer','brand_colors');
+  else if (hasGrey) pass('color_grey','Brand Colors','Grey (#828282) used for subtitles and footer','brand_colors');
+  else fail('color_grey','Brand Colors','Grey (#828282) used for subtitles and footer','all','#828282 not found.','Apply #828282 to H2 and footer text.','brand_colors');
+
+  if (!bgColors.length) unable('color_light_blue','Brand Colors','Light Blue (#E8F1FF) used for table column backgrounds','brand_colors');
+  else if (hasLightBlueBg) pass('color_light_blue','Brand Colors','Light Blue (#E8F1FF) used for table column backgrounds','brand_colors');
+  else fail('color_light_blue','Brand Colors','Light Blue (#E8F1FF) used for table column backgrounds','all','#E8F1FF not found in backgrounds.','Set table body cells to #E8F1FF.','brand_colors');
+
+  if (!bgColors.length) unable('color_light_grey','Brand Colors','Light Grey (#F0F4F9) used for alternate table backgrounds','brand_colors');
+  else if (hasLightGreyBg) pass('color_light_grey','Brand Colors','Light Grey (#F0F4F9) used for alternate table backgrounds','brand_colors');
+  else unable('color_light_grey','Brand Colors','Light Grey (#F0F4F9) used for alternate table backgrounds','brand_colors');
+
+  if (!textColors.length&&!bgColors.length) unable('color_no_offbrand','Brand Colors','No off-brand colors detected','brand_colors');
+  else if (offBrandColors.length) fail('color_no_offbrand','Brand Colors','No off-brand colors detected','all',
+    `Off-brand: ${offBrandColors.slice(0,4).join(', ')}`,
+    'Remove all non-brand colors. Use only: #015CE6, #121212, #828282, #E8F1FF, #F0F4F9, #FFFFFF.','brand_colors');
+  else pass('color_no_offbrand','Brand Colors','No off-brand colors detected','brand_colors');
+
+  // ── LAYOUT ───────────────────────────────────────────────────
+  unable('layout_two_column','Layout & Spacing','Two-column layout used (Left ~30%, Right ~70%)','layout_spacing');
+  unable('layout_line_length','Layout & Spacing','Line length within 50–75 character range','layout_spacing');
+  unable('layout_whitespace','Layout & Spacing','Generous whitespace — pages are not cramped','layout_spacing');
+  unable('layout_breathing_room','Layout & Spacing','Content has breathing room','layout_spacing');
+
+  if (!aligns.length) unable('layout_left_aligned','Layout & Spacing','Left-aligned text (NOT justified)','layout_spacing');
+  else if (hasJustified) fail('layout_left_aligned','Layout & Spacing','Left-aligned text (NOT justified)','all',
+    'Justified text detected.','Select all text → Format → Align → Left. Never use Justify.','layout_spacing');
+  else pass('layout_left_aligned','Layout & Spacing','Left-aligned text (NOT justified)','layout_spacing');
+
+  // ── TABLES ───────────────────────────────────────────────────
+  if (!tables.length) {
+    ['table_font_size','table_header_bg','table_header_text','table_body_bg'].forEach(id =>
+      unable(id,'Tables',{table_font_size:'Table font size is 10px',table_header_bg:'Table header background is Brand Blue or Black',table_header_text:'Table header text is White',table_body_bg:'Table body background uses Light Blue or Light Grey'}[id],'tables'));
+  } else {
+    const tFontOk = tables.some(t=>{ const s=parsePt(t.fontSize); return s>=11&&s<=15; });
+    if (tFontOk) pass('table_font_size','Tables','Table font size is 10px','tables');
+    else fail('table_font_size','Tables','Table font size is 10px','all','Table font ≠ 10px.','Set all table text to 10px.','tables');
+
+    const hBgOk = tables.some(t=>colorDist(t.headerBg,BRAND.blue)<28||colorDist(t.headerBg,BRAND.black)<25);
+    if (hBgOk) pass('table_header_bg','Tables','Table header background is Brand Blue or Black','tables');
+    else fail('table_header_bg','Tables','Table header background is Brand Blue or Black','all',
+      `Header backgrounds: ${tables.map(t=>t.headerBg||'none').slice(0,3).join(', ')}`,
+      'Set table header rows to #015CE6 or #121212 background.','tables');
+
+    const hTextOk = tables.some(t=>colorDist(t.headerColor,BRAND.white)<25);
+    if (hTextOk) pass('table_header_text','Tables','Table header text is White','tables');
+    else fail('table_header_text','Tables','Table header text is White','all',
+      `Header text colors: ${tables.map(t=>t.headerColor||'none').slice(0,3).join(', ')}`,
+      'Set table header text color to #FFFFFF.','tables');
+
+    const bBgOk = tables.some(t=>colorDist(t.bodyBg,BRAND.lBlue)<28||colorDist(t.bodyBg,BRAND.lGrey)<28);
+    if (bBgOk) pass('table_body_bg','Tables','Table body background uses Light Blue or Light Grey','tables');
+    else fail('table_body_bg','Tables','Table body background uses Light Blue or Light Grey','all',
+      `Body backgrounds: ${tables.map(t=>t.bodyBg||'none').slice(0,3).join(', ')}`,
+      'Set table body cells to #E8F1FF or #F0F4F9.','tables');
+  }
+  unable('table_border','Tables','Table border weight is 3pt, border color is White','tables');
+  unable('table_padding','Tables','Cell padding is 0.1 inches','tables');
+  unable('table_alignment','Tables','Tables are inline, left-aligned','tables');
+
+  // ── COVER PAGE ───────────────────────────────────────────────
+  const fpWords = firstPageText.split(/\s+/).filter(w=>w).length;
+  if (numPages<2) fail('cover_distinct','Cover Page','Has a distinct cover page','1','Only one page detected.','Add a Brand Blue cover page.','cover_page');
+  else if (fpWords<80) pass('cover_distinct','Cover Page','Has a distinct cover page','cover_page');
+  else fail('cover_distinct','Cover Page','Has a distinct cover page','1',
+    `Page 1 has ~${fpWords} words — likely not a distinct cover.`,
+    'Keep cover to title, subtitle, and branding only.','cover_page');
+
+  if (hasBlueBg) pass('cover_blue_bg','Cover Page','Cover uses Brand Blue background','cover_page');
+  else fail('cover_blue_bg','Cover Page','Cover uses Brand Blue background','1','Brand Blue background not found.','Set cover page background to #015CE6.','cover_page');
+
+  if (hasTitle) pass('cover_white_title','Cover Page','Title text is large, white, prominent','cover_page');
+  else fail('cover_white_title','Cover Page','Title text is large, white, prominent','1','No large 34px title detected.','Add 34px white title on cover.','cover_page');
+
+  if (firstPageText.toLowerCase().includes('securitypal')) pass('cover_branding','Cover Page','SecurityPal AI branding present','cover_page');
+  else fail('cover_branding','Cover Page','SecurityPal AI branding present','1','SecurityPal not found on cover.','Add SecurityPal AI name/logo to cover page.','cover_page');
+
+  // ── FOOTER (unable from HTML — no per-page separation) ───────
+  unable('footer_consistent','Footer','Consistent footer across all body pages','footer');
+  unable('footer_style','Footer','Footer text uses Heading 5 style (8px)','footer');
+  unable('footer_cover_different','Footer','Cover page footer is different from body footer','footer');
+
+  // ── PROFESSIONALISM ──────────────────────────────────────────
+  unable('pro_no_borders','Overall Professionalism','No decorative borders or unnecessary effects','what_not_to_do');
+
+  unable('pro_no_multi_fonts','Overall Professionalism','No multiple competing fonts','what_not_to_do');
+
+  if (!aligns.length) unable('pro_no_justified','Overall Professionalism','No justified text','what_not_to_do');
+  else if (hasJustified) fail('pro_no_justified','Overall Professionalism','No justified text','all','Justified alignment detected.','Change to Left alignment throughout.','what_not_to_do');
+  else pass('pro_no_justified','Overall Professionalism','No justified text','what_not_to_do');
+
+  const distinctSizes = new Set(sizesPx).size;
+  if (!distinctSizes) unable('pro_hierarchy','Overall Professionalism','Clear visual hierarchy','what_not_to_do');
+  else if (distinctSizes>=3) pass('pro_hierarchy','Overall Professionalism','Clear visual hierarchy','what_not_to_do');
+  else fail('pro_hierarchy','Overall Professionalism','Clear visual hierarchy','all',
+    `Only ${distinctSizes} text size(s) — no hierarchy.`,
+    'Apply full type scale: H1 18px, H2 14px, body 11px, footer 8px.','what_not_to_do');
+
+  const passed=checklist.filter(i=>i.status==='pass').length;
+  const failed=checklist.filter(i=>i.status==='fail').length;
+  const undetermined=checklist.filter(i=>i.status==='unable_to_determine').length;
+  const total=checklist.length;
+  const summary = failed===0
+    ? `Google Docs analysis complete. No issues detected. ${undetermined} item(s) pending manual review (margins, borders, footer consistency).`
+    : `Google Docs analysis complete. ${failed} issue(s) found. ${undetermined} item(s) pending manual review.`;
+  return { checklist, score:{passed,failed,undetermined,total}, summary };
+}
+
+// ──────────────────────────────────────────────────────────────
+// ANALYZE ENTRY POINT
+// ──────────────────────────────────────────────────────────────
+window.analyzeDocument = async function() {
+  clearError();
+  hideResults();
+
+  if (activeTab === 'link') {
+    // ── Google Docs path ──
+    const url = document.getElementById('docLinkInput').value.trim();
+    if (!url) return;
+    const docId = extractGoogleDocId(url);
+    if (!docId) { showError('Could not find a Google Doc ID in this URL. Paste the full Google Docs link.'); return; }
+
+    setBtnAnalyzing('Fetching document...');
+    try {
+      const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html`;
+      const proxyUrl  = `https://corsproxy.io/?${encodeURIComponent(exportUrl)}`;
+
+      setBtnStatus('Downloading from Google Docs...');
+      let resp;
+      try { resp = await fetch(proxyUrl); }
+      catch { throw new Error('Network error. Check your internet connection.'); }
+
+      if (resp.status === 403 || resp.status === 401)
+        throw new Error('Access denied. Set the doc to "Anyone with the link → Viewer" and try again.');
+      if (!resp.ok)
+        throw new Error(`Could not fetch the document (${resp.status}). Make sure the link is valid and publicly shared.`);
+
+      const html = await resp.text();
+      if (!html || html.length < 200)
+        throw new Error('Document appears empty or could not be read.');
+
+      setBtnStatus('Parsing styles & colors...');
+      await new Promise(r => setTimeout(r, 150));
+
+      setBtnStatus('Running brand checks...');
+      const parsed = analyzeGDocHtml(html);
+      const result = runHtmlBrandChecks(parsed);
+      analysisResult = result;
+
+      await new Promise(r => setTimeout(r, 200));
+      resetBtnState();
+      renderResults(result);
+
+    } catch (err) {
+      resetBtnState();
+      showError(err.message || 'An unexpected error occurred.');
+    }
+
+  } else {
+    // ── PDF path ──
+    if (!uploadedFile) return;
+    setBtnAnalyzing('Reading PDF...');
+    try {
+      setBtnStatus('Extracting content, fonts & rendering pages...');
+      let pdfData;
+      try { pdfData = await extractPdfData(uploadedFile); }
+      catch (err) {
+        if (err.message && err.message.includes('password'))
+          throw new Error('This PDF is password-protected. Please upload an unlocked PDF.');
+        throw new Error('Could not read this PDF. It may be corrupted or image-only.');
+      }
+
+      if (pdfData.pages.every(p => p.charCount < 20))
+        throw new Error('No readable text found. This PDF may be a scanned image.');
+
+      setBtnStatus('Running brand checks...');
+      await new Promise(r => setTimeout(r, 200));
+      setBtnStatus('Building report...');
+      const result = runBrandChecks(pdfData);
+      analysisResult = result;
+
+      await new Promise(r => setTimeout(r, 200));
+      resetBtnState();
+      renderResults(result);
+
+    } catch (err) {
+      resetBtnState();
+      showError(err.message || 'An unexpected error occurred. Please try again.');
+    }
+  }
+};
+
+// ──────────────────────────────────────────────────────────────
+// RENDER RESULTS
+// ──────────────────────────────────────────────────────────────
+const GUIDE_PAGE_MAP = {
+  'page_setup': 'guide-page-setup',
+  'typography': 'guide-typography',
+  'brand_colors': 'guide-brand-colors',
+  'layout_spacing': 'guide-layout',
+  'tables': 'guide-tables',
+  'cover_page': 'guide-cover',
+  'footer': 'guide-footer',
+  'charts_body': 'guide-charts',
+  'what_not_to_do': 'guide-dont',
+};
+
+function renderResults(result) {
+  const { checklist, score, summary } = result;
+
+  // Score ring
+  const total = score.total || checklist.length;
+  const passed = score.passed || 0;
+  const failed = score.failed || 0;
+  const undetermined = score.undetermined || 0;
+  const pct = total > 0 ? Math.round((passed / total) * 100) : 0;
+
+  const circumference = 2 * Math.PI * 50; // 314
+  const offset = circumference - (pct / 100) * circumference;
+
+  const ring = document.getElementById('scoreRingCircle');
+  ring.style.strokeDashoffset = offset;
+  ring.style.stroke = pct >= 90 ? '#22C55E' : pct >= 70 ? '#EAB308' : '#EF4444';
+
+  document.getElementById('scoreNum').textContent = passed;
+  document.getElementById('scoreDenom').textContent = '/' + total;
+  document.getElementById('scorePct').textContent = pct + '%';
+  document.getElementById('scorePct').style.color = pct >= 90 ? '#15803D' : pct >= 70 ? '#92400E' : '#991B1B';
+  document.getElementById('scoreSummary').textContent = summary || '';
+  document.getElementById('pillPass').textContent = `✅ ${passed} Passed`;
+  document.getElementById('pillFail').textContent = `❌ ${failed} Failed`;
+  document.getElementById('pillWarn').textContent = `🔵 ${undetermined} Pending Review`;
+
+  // Full Compliance Report
+  const grouped = {};
+  checklist.forEach(item => {
+    if (!grouped[item.category]) grouped[item.category] = [];
+    grouped[item.category].push(item);
+  });
+
+  let checkHtml = `<h3 class="section-title" style="margin-top:24px">Full Compliance Report</h3>`;
+  const CAT_ORDER = ['Page Setup & Format','Cover Page','Typography','Brand Colors','Layout & Spacing','Tables','Footer','Overall Professionalism'];
+  const sortedEntries = Object.entries(grouped).sort(([a],[b]) => {
+    const ai = CAT_ORDER.indexOf(a), bi = CAT_ORDER.indexOf(b);
+    return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+  });
+  sortedEntries.forEach(([cat, items]) => {
+    const catId = 'result-group-' + cat.replace(/\W/g, '');
+    const passCount = items.filter(i => i.status === 'pass').length;
+    const failCount = items.filter(i => i.status === 'fail').length;
+    checkHtml += `
+      <div class="checklist-results-group">
+        <div class="checklist-results-group-header" onclick="toggleResultGroup('${catId}')">
+          <span>${escHtml(cat)}</span>
+          <span style="font-size:12px;color:#6B7280">✅ ${passCount} · ❌ ${failCount} · 🔵 ${items.length - passCount - failCount}</span>
+        </div>
+        <div class="checklist-results-body" id="${catId}">`;
+    items.forEach(item => {
+      const statusIcon = item.status === 'pass' ? '✅' : item.status === 'fail' ? '❌' : '🔵';
+      const rowClass = item.status === 'pass' ? 'pass' : item.status === 'fail' ? 'fail' : 'pending';
+      const guideId = GUIDE_PAGE_MAP[item.guide_link] || 'guide-page-setup';
+      // Page label — only show specific page numbers, not 'all'/'multiple'
+      const pgLabel = item.pages && item.pages !== 'all' && item.pages !== 'multiple' && item.pages !== 'null'
+        ? `<span class="result-pages">pg.${escHtml(item.pages)}</span>` : '';
+      // Detail panel content
+      let detail = '';
+      if (item.status === 'pass') {
+        detail = `<span style="color:#15803D;font-size:12px">✅ Passed — no action required.</span>`;
+      } else {
+        if (item.excerpt) detail += `<div style="color:#6B7280;margin-bottom:7px">${escHtml(item.excerpt)}</div>`;
+        if (item.suggestion) detail += `<div class="suggestion-box" style="margin-bottom:8px">💡 ${escHtml(item.suggestion)}</div>`;
+        detail += `<a class="view-guide-link" onclick="navigate('${guideId}');event.stopPropagation()" role="button">📘 View Guideline →</a>`;
+      }
+      checkHtml += `
+          <div class="result-row ${rowClass}" onclick="toggleRowDetail('${item.id}')">
+            <span class="result-status">${statusIcon}</span>
+            <span class="result-text">${escHtml(item.item)}</span>
+            <span class="row-details-btn" id="rdb-${item.id}">View Details</span>
+            ${pgLabel}
+          </div>
+          <div class="row-detail-panel" id="rdp-${item.id}">${detail}</div>`;
+    });
+    checkHtml += `</div></div>`;
+  });
+
+  document.getElementById('fullChecklistResults').innerHTML = checkHtml;
+  document.getElementById('resultsSection').classList.add('visible');
+}
+
+window.toggleResultGroup = function(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+};
+
+function hideResults() {
+  document.getElementById('resultsSection').classList.remove('visible');
+  document.getElementById('fullChecklistResults').innerHTML = '';
+}
+
+window.toggleRowDetail = function(id) {
+  const panel = document.getElementById('rdp-' + id);
+  const btn   = document.getElementById('rdb-' + id);
+  if (!panel) return;
+  const open = panel.classList.toggle('open');
+  if (btn) btn.textContent = open ? 'Hide Details' : 'View Details';
+};
+
+window.resetForm = function() {
+  uploadedFile = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('dropZone').style.display = '';
+  document.getElementById('fileInfoBar').classList.remove('visible');
+  resetBtnState();
+  hideResults();
+  clearError();
+  analysisResult = null;
+};
+
+function showError(msg) {
+  const card = document.getElementById('errorCard');
+  card.textContent = '⚠️ ' + msg;
+  card.classList.add('visible');
+}
+
+function clearError() {
+  document.getElementById('errorCard').classList.remove('visible');
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ──────────────────────────────────────────────────────────────
+// BRAND CHECKLIST PAGE (Page 2)
+// ──────────────────────────────────────────────────────────────
+const CHECKLIST_DATA = [
+  {
+    group: '1. Page Setup & Format',
+    guide: 'guide-page-setup',
+    items: [
+      'A4 Portrait format (8.27" × 11.69")',
+      'Margins are 0.8 inches on all four sides',
+      'White background',
+      'Portrait orientation',
+    ]
+  },
+  {
+    group: '2. Typography',
+    guide: 'guide-typography',
+    items: [
+      'Uses Geist font family',
+      'Title text is 34px, white, used on cover page',
+      'Heading 1 is 18px, Brand Blue (#015CE6)',
+      'Heading 2 is 14px, Grey (#828282)',
+      'Body/Normal text is 11px, Black (#121212)',
+      'Footer text is 8px',
+      'No extra/rogue font sizes outside the type scale',
+    ]
+  },
+  {
+    group: '3. Brand Colors',
+    guide: 'guide-brand-colors',
+    items: [
+      'Brand Blue (#015CE6) used for headings and charts',
+      'Black (#121212) used for table headers and body text',
+      'Grey (#828282) used for subtitles and footer',
+      'Light Blue (#E8F1FF) used for table column backgrounds',
+      'Light Grey (#F0F4F9) used for alternate table backgrounds',
+      'No off-brand colors detected',
+    ]
+  },
+  {
+    group: '4. Layout & Spacing',
+    guide: 'guide-layout',
+    items: [
+      'Two-column layout used (Left ~30%, Right ~70%)',
+      'Line length within 50–75 character range',
+      'Generous whitespace — pages are not cramped',
+      'Left-aligned text (NOT justified)',
+      'Content has breathing room',
+    ]
+  },
+  {
+    group: '5. Tables',
+    guide: 'guide-tables',
+    items: [
+      'Table font size is 10px',
+      'Table header background is Brand Blue or Black',
+      'Table header text is White',
+      'Table body background uses Light Blue or Light Grey',
+      'Table border weight is 3pt, border color is White',
+      'Cell padding is 0.1 inches',
+      'Tables are inline, left-aligned',
+    ]
+  },
+  {
+    group: '6. Cover Page',
+    guide: 'guide-cover',
+    items: [
+      'Has a distinct cover page',
+      'Cover uses Brand Blue background',
+      'Title text is large, white, prominent',
+      'SecurityPal AI branding present',
+    ]
+  },
+  {
+    group: '7. Footer',
+    guide: 'guide-footer',
+    items: [
+      'Consistent footer across all body pages',
+      'Footer text uses Heading 5 style (8px)',
+      'Cover page footer is different from body footer',
+    ]
+  },
+  {
+    group: '8. Overall Professionalism',
+    guide: 'guide-dont',
+    items: [
+      'No decorative borders or unnecessary effects',
+      'No multiple competing fonts',
+      'No justified text',
+      'Clear visual hierarchy',
+    ]
+  },
+];
+
+function buildChecklistPage() {
+  const container = document.getElementById('checklistGroupsContainer');
+  let totalItems = 0;
+
+  CHECKLIST_DATA.forEach((group, gi) => {
+    const groupEl = document.createElement('div');
+    groupEl.className = 'checklist-group';
+
+    const header = document.createElement('div');
+    header.className = 'checklist-group-header';
+    header.innerHTML = `<span>${escHtml(group.group)}</span><span style="font-size:14px">▾</span>`;
+    header.addEventListener('click', () => {
+      const body = groupEl.querySelector('.checklist-group-body');
+      const isHidden = body.style.display === 'none';
+      body.style.display = isHidden ? '' : 'none';
+      header.querySelector('span:last-child').textContent = isHidden ? '▾' : '▸';
+    });
+
+    const body = document.createElement('div');
+    body.className = 'checklist-group-body';
+
+    group.items.forEach((itemText, ii) => {
+      const id = `cl_${gi}_${ii}`;
+      checklistState[id] = false;
+      totalItems++;
+
+      const itemEl = document.createElement('div');
+      itemEl.className = 'checklist-item';
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = id;
+      cb.setAttribute('aria-label', itemText);
+      cb.addEventListener('change', () => {
+        checklistState[id] = cb.checked;
+        updateChecklistProgress();
+      });
+
+      const label = document.createElement('label');
+      label.htmlFor = id;
+      label.textContent = itemText;
+
+      const infoBtn = document.createElement('button');
+      infoBtn.className = 'info-btn';
+      infoBtn.title = 'View guide';
+      infoBtn.setAttribute('aria-label', 'View guide for ' + itemText);
+      infoBtn.textContent = 'ℹ️';
+      infoBtn.addEventListener('click', () => navigate(group.guide));
+
+      itemEl.appendChild(cb);
+      itemEl.appendChild(label);
+      itemEl.appendChild(infoBtn);
+      body.appendChild(itemEl);
+    });
+
+    groupEl.appendChild(header);
+    groupEl.appendChild(body);
+    container.appendChild(groupEl);
+  });
+
+  window._clTotalItems = totalItems;
+  updateChecklistProgress();
+}
+
+function updateChecklistProgress() {
+  const total = window._clTotalItems || 35;
+  const checked = Object.values(checklistState).filter(Boolean).length;
+  const pct = total > 0 ? (checked / total) * 100 : 0;
+  document.getElementById('clProgressFill').style.width = pct + '%';
+  document.getElementById('clProgressText').textContent = `${checked} of ${total} items checked`;
+}
+
+window.resetChecklist = function() {
+  Object.keys(checklistState).forEach(k => checklistState[k] = false);
+  document.querySelectorAll('#checklistGroupsContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
+  updateChecklistProgress();
+};
+
+// ──────────────────────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────────────────────
+buildChecklistPage();
+navigate('upload');
+</script>
+</body>
+</html>
